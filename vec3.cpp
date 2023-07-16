@@ -4,8 +4,6 @@
 #include <cmath>
 #include <iostream>
 
-int hello = 1;
-
 class vec3 {
     public:
         double e[3]; // 3D Vector
@@ -22,20 +20,20 @@ class vec3 {
         double& operator[](int i) { return e[i]; }
 
         vec3& operator+=(const vec3 &v) {
-            e[0] += v.e[0];
-            e[1] += v.e[1];
-            e[2] += v.e[2];
+            e[0] += v[0];
+            e[1] += v[1];
+            e[2] += v[2];
             return *this;
         }
 
-        vec3& operator*=(const double t) {
+        vec3& operator*=(double t) {
             e[0] *= t;
             e[1] *= t;
             e[2] *= t;
             return *this;
         }
 
-        vec3& operator/=(const double t) {
+        vec3& operator/=(double t) {
             return *this *= 1/t;
         }
 
@@ -46,7 +44,64 @@ class vec3 {
         double length_squared() const {
             return e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
         }
+
 };
+
+// vec3 Utility Functions
+
+std::ostream& operator<<(std::ostream &out, const vec3 &v) 
+{
+    return out << v.e[0] << ' ' << v.e[1] << ' ' << v.e[2];
+}
+
+vec3 operator+(const vec3 &u, const vec3 &v) 
+{
+    return vec3{u[0] + v[0], u[1] + v[1], u[2] + v[2]};
+}
+
+vec3 operator-(const vec3 &u, const vec3 &v) 
+{
+    return vec3{u[0] - v[0], u[1] - v[1], u[3] - v[3]};
+}
+
+vec3 operator*(const vec3 &u, const vec3 &v) 
+{
+    return vec3{u[0] * v[0], u[1] * v[1], u[3] * v[3]};
+}
+
+vec3 operator*(const vec3 &u, double t) 
+{
+    return vec3{t*u[0], t*u[1], t*u[2]};
+}
+
+vec3 operator*(double t, const vec3 &u) 
+{
+    return u * t;
+}
+
+vec3 operator/(const vec3 &u, double t) 
+{
+    return (1/t) * u;
+}
+
+double dot(const vec3 &u, const vec3 &v)
+{
+    return u[0] * v[0]
+         + u[1] * v[1]
+         + u[2] * v[2];
+}
+
+vec3 cross(const vec3 &u, const vec3 &v)
+{
+    return vec3{u[1] * v[2] - u[2] * v[1],
+                u[2] * v[0] - u[0] * v[2],
+                u[0] * v[1] - u[1] * v[0] };
+}
+
+vec3 unit_vector(vec3& v)
+{
+    return v / v.length();
+}
 
 // vec3 Type aliases
 using point3 = vec3; // 3D point
@@ -55,32 +110,10 @@ using colour = vec3; // RGB colour
 
 int main()
 {
-    vec3 v = vec3(9.2, 7, 303.1);
-    vec3 v1 = vec3(0, 0, 0);
+    /* Testing l/rvalue stuff (and non-const overloads)*/
+    vec3 v = vec3{ 1, 2, 3 } += vec3{1, 2, 3};
 
-    v += v1;
+    std::cout << v;
 
-    double d = v[0];
-
-    std::cout << "v[0]="  << v[0] << " d= " << d << '\n';
-
-    v[0] = 7.77;
-
-    int a = 0;
-    a += 1;
-
-    int *p = ((int *) malloc(sizeof(int)));
-    free(p);
-
-    *p = 0x4010;
-
-    p = ((int *) malloc(sizeof(int)));
-    p = ((int *) malloc(sizeof(int)));
-
-    *p = 9;
-
-
-    malloc(sizeof(int));
-
-    std::cout << "v[0]= " << v[0] << " d= " << d << '\n';
+    v = vec3{ 1, 2, 3 } + vec3{1, 2, 3};
 }
