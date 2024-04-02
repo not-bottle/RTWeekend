@@ -79,7 +79,9 @@ class camera {
         
         // world is a hittable list of all objects
         if (world.hit(r, interval(0, infinity), rec)) {
-            return 0.5 * (rec.normal + colour(1, 1, 1));
+            vec3 direction = random_on_hemisphere(rec.normal);
+            // Cast a new ray from the hit point in a random direction away from the sphere, calculate the colour and use 50%
+            return 0.5 * ray_colour(ray(rec.p, direction), world);
         }
     
         // Sky
