@@ -4,6 +4,8 @@
 #include <cmath>
 #include <iostream>
 
+/* Generic class to hold a 3D vector. Defines common operations. */
+
 class vec3 {
     public:
         double e[3]; // 3D Vector

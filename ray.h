@@ -3,6 +3,8 @@
 
 #include "vec3.h"
 
+/* Generic ray class. Used to construct a "ray" in V(t) = orig + t*dir format. */
+
 class ray {
     public:
         ray() {}
@@ -13,6 +15,7 @@ class ray {
         point3 origin() const  { return orig; }
         vec3 direction() const { return dir; }
 
+        // Returns position along ray
         point3 at(double t) const {
             return orig + t*dir;
         }
