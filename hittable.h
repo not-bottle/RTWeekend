@@ -1,8 +1,7 @@
 #ifndef HITTABLE_H
 #define HITTABLE_H
 
-#include "ray.h"
-#include "interval.h"
+#include "rtweekend.h"
 
 struct hit_record {
     point3 p; // Point at which the ray has hit an object

@@ -1,8 +1,7 @@
 #ifndef COLOUR_H
 #define COLOUR_H
 
-#include "vec3.h"
-
+#include "rtweekend.h"
 #include <iostream>
 
 /* Writes colour to output stream in PPM format. */

@@ -1,4 +1,4 @@
-#ifndef RTWEEEKEND_H
+#ifndef RTWEEKEND_H
 #define RTWEEKEND_H
 
 #include <cmath>
