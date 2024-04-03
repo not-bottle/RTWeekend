@@ -5,6 +5,7 @@
 
 #include "colour.h"
 #include "hittable.h"
+#include "material.h"
 
 #include <iostream>
 
@@ -13,6 +14,7 @@ class camera {
     double aspect_ratio = 1.0; // Ratio of image width over height
     int image_width = 100; // Rendered image width in pixel count
     int samples_per_pixel = 10; // Count of random samples for each pixel
+    int max_depth = 10; // Maximum number of times rays are allowed to bounce
 
     void render(const hittable& world) {
         initialize();
@@ -27,7 +29,7 @@ class camera {
                 colour pixel_colour(0, 0, 0);
                 for (int sample = 0; sample < samples_per_pixel; ++sample) {
                     ray r = get_ray(i, j);
-                    pixel_colour += ray_colour(r, world);
+                    pixel_colour += ray_colour(r, max_depth, world);
                 }
 
                 write_colour(std::cout, pixel_colour, samples_per_pixel);
@@ -73,15 +75,28 @@ class camera {
     }
 
 
-    colour ray_colour(const ray& r, const hittable& world) const
+    colour ray_colour(const ray& r, int depth, const hittable& world) const
     {
         hit_record rec;
         
+        // When bounce limit is exceeded return no colour (no more light)
+        if (depth <= 0)
+            return colour(0.0, 0.0, 0.0);
+
         // world is a hittable list of all objects
-        if (world.hit(r, interval(0, infinity), rec)) {
-            vec3 direction = random_on_hemisphere(rec.normal);
-            // Cast a new ray from the hit point in a random direction away from the sphere, calculate the colour and use 50%
-            return 0.5 * ray_colour(ray(rec.p, direction), world);
+        if (world.hit(r, interval(0.001, infinity), rec)) {
+            // Note: 0.001 to infinity is used to avoid floating point errors giving hit coordinates within
+            // the object. This leads to "shadow acne" - darker spots that occur due to rays hitting an object
+            // multiple times from within the surface.
+            
+            ray scattered;
+            colour attenuation;
+            if (rec.mat->scatter(r, rec, attenuation, scattered))
+                return attenuation * ray_colour(scattered, depth-1, world);
+            
+            // If ray is absorbed, return no colour
+            return colour(0, 0, 0);
+
         }
     
         // Sky

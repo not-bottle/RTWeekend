@@ -8,14 +8,16 @@
 class sphere : public hittable {
     public:
         sphere() {}
-        sphere(point3 cen, double r) : center(cen), radius(r) {};
+        sphere(point3 _centre, double _radius, std::shared_ptr<material> _material)
+         : centre(_centre), radius(_radius), mat(_material) {}
 
         virtual bool hit(
             const ray& r, interval ray_t, hit_record& rec) const override;
 
-    public:
-        point3 center;
+    private:
+        point3 centre;
         double radius;
+        std::shared_ptr<material> mat;
 };
 
 /* Solves the following quadratic equation: 
@@ -31,7 +33,7 @@ class sphere : public hittable {
    - Two solutions - the ray passes through the sphere (hitting a point on either side)
    */
 bool sphere::hit(const ray& r, interval ray_t, hit_record& rec) const {
-    vec3 oc = r.origin() - center;
+    vec3 oc = r.origin() - centre;
     auto a = r.direction().length_squared();
     auto half_b = dot(oc, r.direction());
     auto c = oc.length_squared() - radius*radius;
@@ -50,9 +52,10 @@ bool sphere::hit(const ray& r, interval ray_t, hit_record& rec) const {
 
     rec.t = root; // Store value t in the hit record
     rec.p = r.at(rec.t); // Store the hit point
-    vec3 outward_normal = (rec.p - center) / radius; // Calculate unit normal (made unit by dividing by radius)
+    vec3 outward_normal = (rec.p - centre) / radius; // Calculate unit normal (made unit by dividing by radius)
     rec.set_face_normal(r, outward_normal); // Determines if the ray is on the inside or outside of the sphere.
     //                                         Flips normal to face ray if on inside. 
+    rec.mat = mat;
 
     return true;
 };

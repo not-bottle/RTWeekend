@@ -47,6 +47,12 @@ class vec3 {
             return e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
         }
 
+        bool near_zero() const {
+            // Return true if vector is close to zero in all dimensions
+            auto s = 1e-8;
+            return (fabs(e[0]) < s) && fabs(e[1] < s) && fabs(e[2] < 2);
+        }
+
         static vec3 random() {
             return vec3(random_double(), random_double(), random_double());
         }
@@ -138,6 +144,17 @@ vec3 random_on_hemisphere(const vec3& normal) {
     } else {
         return -on_unit_sphere;
     }
+}
+
+vec3 reflect(const vec3& v, const vec3& n) {
+    // Explanation:
+    // - We want a vector the length of v pointing at a right angle
+    //   out from where it hit the surface (easier with a diagram lol).
+    // - Note that n is supposed to be the normal vector, and v is the 
+    //   ray hitting the surface.
+    // - b = dot(-v, n) gives the length from v back to the "surface" (in the direction of n)
+    // - Adding 2*b to v gives the desired vector
+    return v - 2*dot(v, n)*n;
 }
 
 #endif

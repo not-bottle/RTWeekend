@@ -3,9 +3,12 @@
 
 #include "rtweekend.h"
 
+class material;
+
 struct hit_record {
     point3 p; // Point at which the ray has hit an object
     vec3 normal; // Unit normal vector at the point
+    std::shared_ptr<material> mat; // The material of the object hit
     double t; // Parameter at which the ray intersects
     bool front_face; // True if ray is intersecting from "outside" of object. 
     //                  False if ray is intersecting from inside.
