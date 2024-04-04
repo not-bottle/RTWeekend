@@ -30,3 +30,14 @@ It is a bit weird how this works. Since all colour values are between 0 and 1 th
 So if a ray hits a sphere with albedo (0.8, 0.8, 0.2), and then hits the sky with colour (0.8, 0.5, 0.5), these
 values just get multiplied together and I guess it works? 
 Should explore this more.
+
+## Hollow glass sphere
+If you make the radius of a sphere negative the surface normals will point inwards.
+For the glass (delectric) material this means that the reflance ratio will use the glass as the "outside"
+material, with the ray projecting into an interior of air. This is a cool way to model a hollow glass sphere
+(where the glass is very thin I guess).
+
+## The camera
+The camera is defined by the user as a point to look from, a point to look at, and a vector pointing in the relative "up" direction of the camera.
+In the camera constructor these values are processed to construct orthonormal basis vectors u,v,w for the camera. They are
+also used to determine focal length and the other coordinates used for rendering the image plane.
