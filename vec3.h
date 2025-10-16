@@ -132,6 +132,16 @@ vec3 random_in_unit_sphere() {
     }
 }
 
+vec3 random_in_unit_disk() {
+    while (true) {
+        // Reject vectors outside the unit disk
+        auto p = vec3(random_double(-1, 1), random_double(-1, 1), 0);
+        if (p.length_squared() < 1) {
+            return p;
+        }
+    }
+}
+
 vec3 random_unit_vector() {
     return unit_vector(random_in_unit_sphere());
 }

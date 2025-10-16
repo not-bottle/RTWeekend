@@ -23,7 +23,7 @@ class sphere : public hittable {
 /* Solves the following quadratic equation: 
    (-b +- sqrt(b^2 - 4ac))/2a
    Where:
-   b = 2*ray.direction . (ray.origin - sphere.centre)
+   b = -2*ray.direction . (ray.origin - sphere.centre)
    a = ray.direction . ray.direction
    c = (ray.direction - sphere.centre) . (ray.direction - sphere.centre) - sphere.radius^2
 
@@ -32,7 +32,7 @@ class sphere : public hittable {
    - One solution - the ray glances off the side of the sphere
    - Two solutions - the ray passes through the sphere (hitting a point on either side)
    */
-bool sphere::hit(const ray& r, interval ray_t, hit_record& rec) const {
+bool sphere::hit(const ray& r, interval ray_bounds, hit_record& rec) const {
     vec3 oc = r.origin() - centre;
     auto a = r.direction().length_squared();
     auto half_b = dot(oc, r.direction());
@@ -44,9 +44,9 @@ bool sphere::hit(const ray& r, interval ray_t, hit_record& rec) const {
 
     // Find the nearest root that lies in the acceptable range.
     auto root = (-half_b - sqrtd) / a;
-    if (!ray_t.surrounds(root)) {
+    if (!ray_bounds.surrounds(root)) {
         root = (-half_b + sqrtd) / a;
-            if (!ray_t.surrounds(root))
+            if (!ray_bounds.surrounds(root))
             return false;
     }
 

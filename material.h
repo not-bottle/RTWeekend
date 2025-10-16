@@ -7,7 +7,7 @@ class hit_record;
 
 class material {
     public:
-        virtual ~material() = default;
+        virtual ~material() = default; // Virtual Destructor
 
         /* Virtual function inherited materials need to define.
            Has 3 functions:
