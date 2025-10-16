@@ -29,8 +29,11 @@ inline double random_double(double min, double max) {
 
 // Common Headers
 
+#define STB_IMAGE_IMPLEMENTATION
+
 #include "ray.h"
 #include "vec3.h"
 #include "interval.h"
+#include <stb_image.h>
 
 #endif
