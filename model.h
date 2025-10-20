@@ -1,6 +1,8 @@
 #ifndef MODEL_H
 #define MODEL_H
 
+#define STB_IMAGE_IMPLEMENTATION
+
 #include <stb_image.h>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>

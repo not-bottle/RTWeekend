@@ -5,6 +5,9 @@
 #include "hittable_list.h"
 #include "material.h"
 #include "sphere.h"
+#include "triangle.h"
+
+#include <chrono>
 
 int main() {
     hittable_list world;
@@ -50,18 +53,24 @@ int main() {
     auto material3 = std::make_shared<metal>(colour(0.7, 0.6, 0.5), 0.0);
     world.add(std::make_shared<sphere>(point3(4, 1, 0), 1.0, material3));
     */
+    auto material_normal = std::make_shared<shade_normal>();
+    //auto material_ground = std::make_shared<lambertian>(colour(0.8, 0.8, 0.0));
+    //auto material_center = std::make_shared<lambertian>(colour(0.1, 0.2, 0.5));
+    //auto material_left   = std::make_shared<dielectric>(1.50);
+    //auto material_bubble = std::make_shared<dielectric>(1.00 / 1.50);
+    //auto material_right  = std::make_shared<metal>(colour(0.8, 0.6, 0.2), 0.0);
 
-    auto material_ground = std::make_shared<lambertian>(colour(0.8, 0.8, 0.0));
-    auto material_center = std::make_shared<lambertian>(colour(0.1, 0.2, 0.5));
-    auto material_left   = std::make_shared<dielectric>(1.50);
-    auto material_bubble = std::make_shared<dielectric>(1.00 / 1.50);
-    auto material_right  = std::make_shared<metal>(colour(0.8, 0.6, 0.2), 0.0);
+    //world.add(std::make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, material_ground));
+    //world.add(std::make_shared<sphere>(point3( -1.5,    0.0, 0.5),   0.5, material_center));
+    //world.add(std::make_shared<sphere>(point3(0.0, 1.0, 0.0),   0.5, material_center));
+    //world.add(std::make_shared<sphere>(point3( 0.0,    0.0, -1.2),   0.4, material_bubble));
+    //world.add(std::make_shared<sphere>(point3( 2.0, 0.0, 0.5),   0.5, material_right));
+    //world.add(std::make_shared<sphere>(point3( 0.0, 0.0, 3.0),   0.5, material_right));
 
-    world.add(std::make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, material_ground));
-    world.add(std::make_shared<sphere>(point3( 0.0,    0.0, -1.2),   0.5, material_left));
-    world.add(std::make_shared<sphere>(point3(-1.0,    0.0, -1.0),   0.5, material_center));
-    world.add(std::make_shared<sphere>(point3( 0.0,    0.0, -1.2),   0.4, material_bubble));
-    world.add(std::make_shared<sphere>(point3( 1.0,    0.0, -1.0),   0.5, material_right));
+    Model model = Model("./test_objects/suzanne.obj");
+    mesh_to_hittables(model, world, material_normal);
+
+    std::cerr << "World Size: " << world.objects.size() << std::endl;
 
     camera cam;
 
@@ -71,12 +80,16 @@ int main() {
     cam.max_depth         = 50;
 
     cam.vfov     = 90;
-    cam.lookfrom = point3(0,0,0);
-    cam.lookat   = point3(0,0,-1);
+    cam.lookfrom = point3(0,0,1.5);
+    cam.lookat   = point3(0,0,1);
     cam.vup      = vec3(0,1,0);
 
     cam.defocus_angle = 0.0;
     cam.focus_dist    = 1.0;
 
+    auto render_start_time = std::chrono::steady_clock::now();
     cam.render(world);
+    auto render_finish_time = std::chrono::steady_clock::now();
+    auto render_duration = std::chrono::duration_cast<std::chrono::milliseconds>(render_finish_time - render_start_time).count();
+    std::cerr << "Render time: " << render_duration << "ms" << std::endl;
 }

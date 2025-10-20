@@ -32,7 +32,7 @@ class camera {
 
         for (int j = 0; j < image_height; ++j) {
 
-            std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+            std::cerr << "\rScanlines remaining: " << image_height - j << ' ' << std::flush;
 
             for (int i = 0; i < image_width; ++i) {
                 colour pixel_colour(0, 0, 0);
@@ -40,7 +40,6 @@ class camera {
                     ray r = get_ray(i, j);
                     pixel_colour += ray_colour(r, max_depth, world);
                 }
-
                 write_colour(std::cout, pixel_colour, samples_per_pixel);
             }
         }

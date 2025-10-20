@@ -50,13 +50,13 @@ class metal : public material {
             scattered = ray(rec.p, reflected + fuzz*random_unit_vector());
             attenuation = albedo;
 
-            // Return false (ray is absorbed) if fuzzed ray is pointing back into the object
+            // Return false (ray is absorbed) if fuzzed ray is pointing back into the object 
             return (dot(scattered.direction(), rec.normal) > 0);
         }
-    
+
     private:
         colour albedo;
-        double fuzz;  
+        double fuzz;
 };
 
 class dielectric : public material {
@@ -83,7 +83,7 @@ class dielectric : public material {
             if (cannot_refract || reflectance(cos_theta, refraction_ratio) > random_double()) {
                 // Rays that cannot refract are reflected internally
                 direction = reflect(unit_direction, rec.normal);
-            } else { 
+            } else {
                 direction = refract(unit_direction, rec.normal, refraction_ratio);
             }
 
@@ -100,6 +100,18 @@ class dielectric : public material {
             auto r0 = (1- ref_idx) / (1+ref_idx);
             r0 = r0*r0;
             return r0 + (1-r0)*pow((1 - cosine), 5);
+        }
+};
+
+class shade_normal : public material {
+    public:
+        shade_normal() {}
+
+    bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered)
+        const override {
+            scattered = ray(rec.p, rec.normal);
+            attenuation = colour(rec.normal);
+            return true;
         }
 };
 

@@ -2,6 +2,7 @@
 #define HITTABLE_H
 
 #include "rtweekend.h"
+#include "vec2.h"
 
 class material;
 
@@ -12,12 +13,13 @@ struct hit_record {
     double t; // Parameter at which the ray intersects
     bool front_face; // True if ray is intersecting from "outside" of object. 
     //                  False if ray is intersecting from inside.
+    vec2 uv; // UV coords (mapping determined by object type)
 
     void set_face_normal(const ray& r, const vec3& outward_normal) {
         // Determine if ray is facing the inside or outside of the surface by
         // seeing if the dot product is negative. 
         // (If it is negative the outside normal is facing opposite the ray, which means the ray is on the outside)
-        front_face = dot(r.direction(), outward_normal) < 0; 
+        front_face = dot(r.direction(), outward_normal) < 0;
         // If the ray is inside the surface, flip the normal so it is facing the ray (normals will always point towards the ray)
         normal = front_face ? outward_normal : -outward_normal; 
     }
