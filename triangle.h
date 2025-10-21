@@ -11,24 +11,12 @@
 class triangle : public hittable {
     public:
         triangle(point3 v0, point3 v1, point3 v2, std::shared_ptr<material> material)
-         : v{v0, v1, v2}, mat{material}, vnormals{false}
-        {
-            vec3 v0v1 = v1 - v0;
-            vec3 v0v2 = v2 - v0;
-            normal = cross(v0v1, v0v2);
-            D = -dot(normal, v0);
-        }
+         : triangle(v0, v1, v2, vec3(), vec3(), vec3(), mat, false) {}
 
         triangle(point3 v0, point3 v1, point3 v2, vec3 n0, vec3 n1, vec3 n2, std::shared_ptr<material> material)
-         : v{v0, v1, v2}, v_n{n0, n1, n2}, mat{material}, vnormals{true}
-        {
-            vec3 v0v1 = v1 - v0;
-            vec3 v0v2 = v2 - v0;
-            normal = cross(v0v1, v0v2);
-            D = -dot(normal, v0);
-        }
+         : triangle(v0, v1, v2, n0, n1, n2, mat, true) {}
 
-        bool has_vnormals() { return vnormals; }
+        bool has_vnormals() const { return vnormals; }
 
         virtual bool hit(
             const ray& r, interval ray_t, hit_record& rec) const override;
@@ -39,7 +27,16 @@ class triangle : public hittable {
         vec3 normal;
         double D;
         std::shared_ptr<material> mat;
-        bool vnormals;
+        bool vnormals = false;
+
+        triangle(point3 v0, point3 v1, point3 v2, vec3 n0, vec3 n1, vec3 n2, std::shared_ptr<material> material, bool vn)
+         : v{v0, v1, v2}, v_n{n0, n1, n2}, mat{material}, vnormals{vn}
+        {
+            vec3 v0v1 = v1 - v0;
+            vec3 v0v2 = v2 - v0;
+            normal = cross(v0v1, v0v2);
+            D = -dot(normal, v0);
+        }
 
         bool hit_geometric(const ray& r, interval ray_bounds, hit_record& rec) const;
         bool hit_geometric_smooth(const ray& r, interval ray_bounds, hit_record& rec) const;

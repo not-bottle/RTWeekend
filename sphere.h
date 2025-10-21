@@ -8,14 +8,17 @@
 class sphere : public hittable {
     public:
         sphere() {}
-        sphere(point3 _centre, double _radius, std::shared_ptr<material> _material)
-         : centre(_centre), radius(_radius), mat(_material) {}
+        sphere(const point3& centre, double radius, std::shared_ptr<material> material)
+         : centre(centre, vec3()), radius(radius), mat(material) {}
+
+        sphere(const point3& centre0, const point3& centre1, double radius, std::shared_ptr<material> material)
+         : centre(centre0, centre1 - centre0), radius(radius), mat(material) {}
 
         virtual bool hit(
             const ray& r, interval ray_t, hit_record& rec) const override;
 
     private:
-        point3 centre;
+        ray centre;
         double radius;
         std::shared_ptr<material> mat;
 };
@@ -33,9 +36,10 @@ class sphere : public hittable {
    - Two solutions - the ray passes through the sphere (hitting a point on either side)
    */
 bool sphere::hit(const ray& r, interval ray_bounds, hit_record& rec) const {
-    vec3 oc = r.origin() - centre;
+    point3 current_centre = centre.at(r.time());
+    vec3 oc = r.origin() - current_centre;
     auto a = r.direction().length_squared();
-    auto half_b = dot(oc, r.direction());
+    auto half_b = dot(r.direction(), oc);
     auto c = oc.length_squared() - radius*radius;
 
     auto discriminant = half_b*half_b - a*c;
@@ -52,7 +56,7 @@ bool sphere::hit(const ray& r, interval ray_bounds, hit_record& rec) const {
 
     rec.t = root; // Store value t in the hit record
     rec.p = r.at(rec.t); // Store the hit point
-    vec3 outward_normal = (rec.p - centre) / radius; // Calculate unit normal (made unit by dividing by radius)
+    vec3 outward_normal = (rec.p - current_centre) / radius; // Calculate unit normal (made unit by dividing by radius)
     rec.set_face_normal(r, outward_normal); // Determines if the ray is on the inside or outside of the sphere.
     //                                         Flips normal to face ray if on inside. 
     rec.mat = mat;
