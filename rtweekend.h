@@ -27,6 +27,11 @@ inline double random_double(double min, double max) {
     return min + (max-min)*random_double();
 }
 
+inline int random_int(int min, int max) {
+    // Return a random interger in [min,max].
+    return int(random_double(min, max+1));
+}
+
 // Common Headers
 
 #include "ray.h"

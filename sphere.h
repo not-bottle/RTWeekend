@@ -9,18 +9,31 @@ class sphere : public hittable {
     public:
         sphere() {}
         sphere(const point3& centre, double radius, std::shared_ptr<material> material)
-         : centre(centre, vec3()), radius(radius), mat(material) {}
+         : centre(centre, vec3()), radius(radius), mat(material) 
+        {
+            auto rvec = vec3(radius, radius, radius);
+            bbox = aabb(centre - rvec, centre + rvec);
+        }
 
         sphere(const point3& centre0, const point3& centre1, double radius, std::shared_ptr<material> material)
-         : centre(centre0, centre1 - centre0), radius(radius), mat(material) {}
+         : centre(centre0, centre1 - centre0), radius(radius), mat(material) 
+        {
+            auto rvec = vec3(radius, radius, radius);
+            aabb box1(centre.at(0) - rvec, centre.at(0) + rvec);
+            aabb box2(centre.at(1) - rvec, centre.at(1) + rvec);
+            bbox = aabb(box1, box2);
+        }
 
         virtual bool hit(
             const ray& r, interval ray_t, hit_record& rec) const override;
+
+        aabb bounding_box() const override { return bbox; }
 
     private:
         ray centre;
         double radius;
         std::shared_ptr<material> mat;
+        aabb bbox;
 };
 
 /* Solves the following quadratic equation: 

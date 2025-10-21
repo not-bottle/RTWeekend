@@ -17,6 +17,10 @@ class triangle : public hittable {
             vec3 v0v2 = v2 - v0;
             normal = cross(v0v1, v0v2);
             D = -dot(normal, v0);
+            
+            bbox = aabb(interval(v0.x(), v1.x(), v2.x()), 
+                        interval(v0.y(), v1.y(), v2.y()), 
+                        interval(v0.z(), v1.z(), v2.z()));
         }
 
         triangle(point3 v0, point3 v1, point3 v2, std::shared_ptr<material> material)
@@ -25,12 +29,15 @@ class triangle : public hittable {
         virtual bool hit(
             const ray& r, interval ray_t, hit_record& rec) const override;
 
+        aabb bounding_box() const override { return bbox; }
+
     private:
         point3 v[3];
         vec3 normal;
         double D;
         std::shared_ptr<material> mat;
         vec3 direction{0, 0, 0};
+        aabb bbox;
 
         bool hit_geometric(const ray& r, interval ray_bounds, hit_record& rec) const;
         bool hit_geometric_smooth(const ray& r, interval ray_bounds, hit_record& rec) const;
