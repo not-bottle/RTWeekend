@@ -28,6 +28,7 @@ class triangle : public hittable {
         double D;
         std::shared_ptr<material> mat;
         bool vnormals = false;
+        //vec3 direction{0, 0, 0};
 
         triangle(point3 v0, point3 v1, point3 v2, vec3 n0, vec3 n1, vec3 n2, std::shared_ptr<material> material, bool vn)
          : v{v0, v1, v2}, v_n{n0, n1, n2}, mat{material}, vnormals{vn}
@@ -121,6 +122,10 @@ bool triangle::hit_geometric(const ray& r, interval ray_bounds, hit_record& rec)
    - If det(M) < 0 ray is backfacing
 */
 bool triangle::hit_moller_trumbore(const ray& r, interval ray_bounds, hit_record& rec) const {
+    // point3 v0 = v[0] + r.time()*direction;
+    // point3 v1 = v[1] + r.time()*direction;
+    // point3 v2 = v[2] + r.time()*direction;
+
     vec3 e1 = v[1] - v[0];
     vec3 e2 = v[2] - v[0];
     vec3 dxe2 = cross(r.dir, e2);

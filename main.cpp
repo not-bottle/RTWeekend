@@ -15,7 +15,7 @@ void load_final_scene_motion_blur(hittable_list& world, camera& cam);
 int main() {
     hittable_list world;
     camera cam;
-    //auto material_normal = std::make_shared<shade_normal>();
+    auto material_normal = std::make_shared<shade_normal>();
     //auto material_ground = std::make_shared<lambertian>(colour(0.8, 0.8, 0.0));
     //auto material_center = std::make_shared<lambertian>(colour(0.1, 0.2, 0.5));
     //auto material_left   = std::make_shared<dielectric>(1.50);
@@ -29,29 +29,27 @@ int main() {
     //world.add(std::make_shared<sphere>(point3( 2.0, 0.0, 0.5),   0.5, material_right));
     //world.add(std::make_shared<sphere>(point3( 0.0, 0.0, 3.0),   0.5, material_right));
 
-    //Model model = Model("./test_objects/suzanne.obj");
-    //mesh_to_hittables(model, world, material_normal);
+    Model model = Model("./test_objects/suzanne.obj");
+    mesh_to_hittables(model, world, material_normal);
 
-    //std::cerr << "World Size: " << world.objects.size() << std::endl;
+    std::cerr << "World Size: " << world.objects.size() << std::endl;
 
-    // camera cam;
-
-    // cam.aspect_ratio      = 16.0 / 9.0;
-    // cam.image_width       = 400;
-    // cam.samples_per_pixel = 32;
-    // cam.max_depth         = 50;
-
-    // cam.vfov     = 90;
-    // cam.lookfrom = point3(0,0,1.5);
-    // cam.lookat   = point3(0,0,1);
-    // cam.vup      = vec3(0,1,0);
-
-    // cam.defocus_angle = 0.0;
-    // cam.focus_dist    = 1.0;
-
-    load_final_scene_motion_blur(world, cam);
-    cam.image_width = 400;
+    cam.aspect_ratio      = 16.0 / 9.0;
+    cam.image_width       = 400;
     cam.samples_per_pixel = 32;
+    cam.max_depth         = 1;
+
+    cam.vfov     = 90;
+    cam.lookfrom = point3(0,0,1.5);
+    cam.lookat   = point3(0,0,1);
+    cam.vup      = vec3(0,1,0);
+
+    cam.defocus_angle = 0.0;
+    cam.focus_dist    = 1.0;
+
+    //load_final_scene_motion_blur(world, cam);
+    //cam.image_width = 400;
+    //cam.samples_per_pixel = 32;
 
 
     auto render_start_time = std::chrono::steady_clock::now();
