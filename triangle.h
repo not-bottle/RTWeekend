@@ -10,34 +10,27 @@
 
 class triangle : public hittable {
     public:
-        triangle(point3 v0, point3 v1, point3 v2, std::shared_ptr<material> material)
-         : triangle(v0, v1, v2, vec3(), vec3(), vec3(), mat, false) {}
-
-        triangle(point3 v0, point3 v1, point3 v2, vec3 n0, vec3 n1, vec3 n2, std::shared_ptr<material> material)
-         : triangle(v0, v1, v2, n0, n1, n2, mat, true) {}
-
-        bool has_vnormals() const { return vnormals; }
-
-        virtual bool hit(
-            const ray& r, interval ray_t, hit_record& rec) const override;
-
-    private:
-        point3 v[3];
-        vec3   v_n[3]; // Vertex normals
-        vec3 normal;
-        double D;
-        std::shared_ptr<material> mat;
-        bool vnormals = false;
-        //vec3 direction{0, 0, 0};
-
-        triangle(point3 v0, point3 v1, point3 v2, vec3 n0, vec3 n1, vec3 n2, std::shared_ptr<material> material, bool vn)
-         : v{v0, v1, v2}, v_n{n0, n1, n2}, mat{material}, vnormals{vn}
+        triangle(point3 v0, point3 v1, point3 v2, std::shared_ptr<material> material, vec3 direction)
+         : v{v0, v1, v2}, mat{material}, direction{direction}
         {
             vec3 v0v1 = v1 - v0;
             vec3 v0v2 = v2 - v0;
             normal = cross(v0v1, v0v2);
             D = -dot(normal, v0);
         }
+
+        triangle(point3 v0, point3 v1, point3 v2, std::shared_ptr<material> material)
+         : triangle(v0, v1, v2, material, vec3()) {}
+
+        virtual bool hit(
+            const ray& r, interval ray_t, hit_record& rec) const override;
+
+    private:
+        point3 v[3];
+        vec3 normal;
+        double D;
+        std::shared_ptr<material> mat;
+        vec3 direction{0, 0, 0};
 
         bool hit_geometric(const ray& r, interval ray_bounds, hit_record& rec) const;
         bool hit_geometric_smooth(const ray& r, interval ray_bounds, hit_record& rec) const;
@@ -122,19 +115,19 @@ bool triangle::hit_geometric(const ray& r, interval ray_bounds, hit_record& rec)
    - If det(M) < 0 ray is backfacing
 */
 bool triangle::hit_moller_trumbore(const ray& r, interval ray_bounds, hit_record& rec) const {
-    // point3 v0 = v[0] + r.time()*direction;
-    // point3 v1 = v[1] + r.time()*direction;
-    // point3 v2 = v[2] + r.time()*direction;
+    point3 v0 = v[0] + r.time()*direction;
+    point3 v1 = v[1] + r.time()*direction;
+    point3 v2 = v[2] + r.time()*direction;
 
-    vec3 e1 = v[1] - v[0];
-    vec3 e2 = v[2] - v[0];
+    vec3 e1 = v1 - v0;
+    vec3 e2 = v2 - v0;
     vec3 dxe2 = cross(r.dir, e2);
     double detM = dot(dxe2, e1);
 
     if (detM == 0) return false;
     
     double invDet = 1/detM;
-    vec3 T = (r.orig - v[0]);
+    vec3 T = (r.orig - v0);
     double u = dot(dxe2, T) * invDet;
     if (u < 0 || u > 1) return false;
 
@@ -156,7 +149,7 @@ bool triangle::hit_moller_trumbore(const ray& r, interval ray_bounds, hit_record
 }
 
 
-void mesh_to_hittables(Model &model, hittable_list &hittables, std::shared_ptr<material> mat) {
+void mesh_to_hittables(Model &model, hittable_list &hittables, std::shared_ptr<material> mat, vec3 direction) {
     std::cerr << "Num meshes:" << model.meshes.size() << std::endl;
     for (int m = 0; m < model.meshes.size(); m++) {
         Mesh mesh = model.meshes[m];
@@ -165,10 +158,7 @@ void mesh_to_hittables(Model &model, hittable_list &hittables, std::shared_ptr<m
             point3 v0 = mesh.vertices[mesh.indices[i]].Position;
             point3 v1 = mesh.vertices[mesh.indices[i+1]].Position;
             point3 v2 = mesh.vertices[mesh.indices[i+2]].Position;
-            vec3 n0 = mesh.vertices[mesh.indices[i]].Normal;
-            vec3 n1 = mesh.vertices[mesh.indices[i+1]].Normal;
-            vec3 n2 = mesh.vertices[mesh.indices[i+2]].Normal;
-            std::shared_ptr<triangle> tri = std::make_shared<triangle>(triangle{v0, v1, v2, n0, n1, n2, mat});
+            std::shared_ptr<triangle> tri = std::make_shared<triangle>(triangle{v0, v1, v2, mat, direction});
             hittables.add(tri);
             acc += 1;
         }

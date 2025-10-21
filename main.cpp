@@ -30,14 +30,14 @@ int main() {
     //world.add(std::make_shared<sphere>(point3( 0.0, 0.0, 3.0),   0.5, material_right));
 
     Model model = Model("./test_objects/suzanne.obj");
-    mesh_to_hittables(model, world, material_normal);
+    mesh_to_hittables(model, world, material_normal, vec3(0.5, 0.0, 0.0));
 
     std::cerr << "World Size: " << world.objects.size() << std::endl;
 
     cam.aspect_ratio      = 16.0 / 9.0;
-    cam.image_width       = 400;
-    cam.samples_per_pixel = 32;
-    cam.max_depth         = 1;
+    cam.image_width       = 200;
+    cam.samples_per_pixel = 8;
+    cam.max_depth         = 50;
 
     cam.vfov     = 90;
     cam.lookfrom = point3(0,0,1.5);
