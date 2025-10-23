@@ -32,9 +32,9 @@ class triangle : public hittable {
         triangle(point3 v0, point3 v1, point3 v2, std::shared_ptr<material> material, vec3 direction)
          : triangle(Vertex{v0, vec3(), vec2()}, Vertex{v1, vec3(), vec2()}, Vertex{v2, vec3(), vec2()}, material, direction) {}
 
-        point3 v0() const { return vertices[0].Position; }
-        point3 v1() const { return vertices[1].Position; }
-        point3 v2() const { return vertices[2].Position; }
+        point3 p0() const { return vertices[0].Position; }
+        point3 p1() const { return vertices[1].Position; }
+        point3 p2() const { return vertices[2].Position; }
 
         virtual bool hit(
             const ray& r, interval ray_t, hit_record& rec) const override;
@@ -80,12 +80,12 @@ bool triangle::hit_geometric(const ray& r, interval ray_bounds, hit_record& rec)
 
     point3 p = r.at(t);
 
-    vec3 v0v1 = v1() - v0();
-    vec3 v1v2 = v2() - v1();
-    vec3 v2v0 = v0() - v2();
-    vec3 v0p = p - v0();
-    vec3 v1p = p - v1();
-    vec3 v2p = p - v2();
+    vec3 v0v1 = p1() - p0();
+    vec3 v1v2 = p2() - p1();
+    vec3 v2v0 = p0() - p2();
+    vec3 v0p = p - p0();
+    vec3 v1p = p - p1();
+    vec3 v2p = p - p2();
 
     vec3 c0 = cross(v0v1, v0p);
     vec3 c1 = cross(v1v2, v1p);
@@ -132,19 +132,19 @@ bool triangle::hit_geometric(const ray& r, interval ray_bounds, hit_record& rec)
    - If det(M) < 0 ray is backfacing
 */
 bool triangle::hit_moller_trumbore(const ray& r, interval ray_bounds, hit_record& rec) const {
-    point3 v0t = v0() + r.time()*direction;
-    point3 v1t = v1() + r.time()*direction;
-    point3 v2t = v2() + r.time()*direction;
+    point3 v0 = p0() + r.time()*direction;
+    point3 v1 = p1() + r.time()*direction;
+    point3 v2 = p2() + r.time()*direction;
 
-    vec3 e1 = v1t - v0t;
-    vec3 e2 = v2t - v0t;
+    vec3 e1 = v1 - v0;
+    vec3 e2 = v2 - v0;
     vec3 dxe2 = cross(r.dir, e2);
     double detM = dot(dxe2, e1);
 
     if (detM == 0) return false;
     
     double invDet = 1/detM;
-    vec3 T = (r.orig - v0t);
+    vec3 T = (r.orig - v0);
     double u = dot(dxe2, T) * invDet;
     if (u < 0 || u > 1) return false;
 
@@ -192,9 +192,9 @@ void mesh_to_hittables(Model &model, hittable_list &hittables, std::shared_ptr<m
             vec2 t0 = mesh.vertices[mesh.indices[i]].TexCoords;
             vec2 t1 = mesh.vertices[mesh.indices[i+1]].TexCoords;
             vec2 t2 = mesh.vertices[mesh.indices[i+2]].TexCoords;
-            Vertex vertex0 {v0, n0, t0};
-            Vertex vertex1 {v1, n1, t1};
-            Vertex vertex2 {v2, v2, t2};
+            Vertex vertex0 = Vertex{v0, n0, t0};
+            Vertex vertex1 = Vertex{v1, n1, t1};
+            Vertex vertex2 = Vertex{v2, v2, t2};
             std::shared_ptr<triangle> tri = std::make_shared<triangle>(triangle{vertex0, vertex1, vertex2, mat});
             hittables.add(tri);
             acc += 1;
