@@ -97,7 +97,7 @@ bool triangle::hit_geometric(const ray& r, interval ray_bounds, hit_record& rec)
     rec.p = p;
     rec.set_face_normal(r, unit_vector(normal));
     rec.mat = mat;
-    rec.uv = vec2(u, v);
+    rec.u = u; rec.v = v;
     
     return true;
 }
@@ -150,7 +150,7 @@ bool triangle::hit_moller_trumbore(const ray& r, interval ray_bounds, hit_record
     rec.p = r.at(t);
     rec.set_face_normal(r, unit_vector(normal));
     rec.mat = mat;
-    rec.uv = vec2(u, v);
+    rec.u = u; rec.v = v;
     
     return true;
 }

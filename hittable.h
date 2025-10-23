@@ -15,7 +15,7 @@ struct hit_record {
     double t; // Parameter at which the ray intersects
     bool front_face; // True if ray is intersecting from "outside" of object. 
     //                  False if ray is intersecting from inside.
-    vec2 uv; // UV coords (mapping determined by object type)
+    double u, v; // UV coords (mapping determined by object type)
 
     void set_face_normal(const ray& r, const vec3& outward_normal) {
         // Determine if ray is facing the inside or outside of the surface by
