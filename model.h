@@ -83,6 +83,7 @@ private:
         {
             Vertex vertex;
             vec3 vector; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
+            vec2 vector2;
             // positions
             vector[0] = mesh->mVertices[i].x;
             vector[1] = mesh->mVertices[i].y;
@@ -95,6 +96,13 @@ private:
                 vector[1] = mesh->mNormals[i].y;
                 vector[2] = mesh->mNormals[i].z;
                 vertex.Normal = vector;
+            }
+            // coords (currently just checking for diffuse texture coords)
+            if (mesh->HasTextureCoords(0))
+            {
+                vector2[0] = mesh->mTextureCoords[0][i].x;
+                vector[1] = mesh->mTextureCoords[0][i].y;
+                vertex.TexCoords = vector2;
             }
             vertices.push_back(vertex);
         }

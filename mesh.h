@@ -11,6 +11,8 @@ struct Vertex {
     point3 Position;
     // normal
     vec3 Normal;
+    // tex coords
+    vec2 TexCoords;
 };
 
 struct Texture {

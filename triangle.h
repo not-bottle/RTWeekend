@@ -10,21 +10,31 @@
 
 class triangle : public hittable {
     public:
-        triangle(point3 v0, point3 v1, point3 v2, std::shared_ptr<material> material, vec3 direction)
-         : v{v0, v1, v2}, mat{material}, direction{direction}
+        triangle(Vertex v0, Vertex v1, Vertex v2, std::shared_ptr<material> material, vec3 direction)
+         : vertices{v0, v1, v2}, mat{material}, direction{direction}
         {
-            vec3 v0v1 = v1 - v0;
-            vec3 v0v2 = v2 - v0;
+            vec3 v0v1 = v1.Position - v0.Position;
+            vec3 v0v2 = v2.Position - v0.Position;
             normal = cross(v0v1, v0v2);
-            D = -dot(normal, v0);
+            D = -dot(normal, v0.Position);
             
-            bbox = aabb(interval(v0.x(), v1.x(), v2.x()), 
-                        interval(v0.y(), v1.y(), v2.y()), 
-                        interval(v0.z(), v1.z(), v2.z()));
+            bbox = aabb(interval(v0.Position.x(), v1.Position.x(), v2.Position.x()), 
+                        interval(v0.Position.y(), v1.Position.y(), v2.Position.y()), 
+                        interval(v0.Position.z(), v1.Position.z(), v2.Position.z()));
         }
 
+        triangle(Vertex v0, Vertex v1, Vertex v2, std::shared_ptr<material> material)
+         : vertices{v0, v1, v2}, mat{material}, direction{vec3()} {}
+
         triangle(point3 v0, point3 v1, point3 v2, std::shared_ptr<material> material)
-         : triangle(v0, v1, v2, material, vec3()) {}
+         : triangle(Vertex{v0, vec3(), vec2()}, Vertex{v1, vec3(), vec2()}, Vertex{v2, vec3(), vec2()}, material, vec3()) {}
+        
+        triangle(point3 v0, point3 v1, point3 v2, std::shared_ptr<material> material, vec3 direction)
+         : triangle(Vertex{v0, vec3(), vec2()}, Vertex{v1, vec3(), vec2()}, Vertex{v2, vec3(), vec2()}, material, direction) {}
+
+        point3 v0() const { return vertices[0].Position; }
+        point3 v1() const { return vertices[1].Position; }
+        point3 v2() const { return vertices[2].Position; }
 
         virtual bool hit(
             const ray& r, interval ray_t, hit_record& rec) const override;
@@ -32,7 +42,7 @@ class triangle : public hittable {
         aabb bounding_box() const override { return bbox; }
 
     private:
-        point3 v[3];
+        Vertex vertices[3];
         vec3 normal;
         double D;
         std::shared_ptr<material> mat;
@@ -70,12 +80,12 @@ bool triangle::hit_geometric(const ray& r, interval ray_bounds, hit_record& rec)
 
     point3 p = r.at(t);
 
-    vec3 v0v1 = v[1] - v[0];
-    vec3 v1v2 = v[2] - v[1];
-    vec3 v2v0 = v[0] - v[2];
-    vec3 v0p = p - v[0];
-    vec3 v1p = p - v[1];
-    vec3 v2p = p - v[2];
+    vec3 v0v1 = v1() - v0();
+    vec3 v1v2 = v2() - v1();
+    vec3 v2v0 = v0() - v2();
+    vec3 v0p = p - v0();
+    vec3 v1p = p - v1();
+    vec3 v2p = p - v2();
 
     vec3 c0 = cross(v0v1, v0p);
     vec3 c1 = cross(v1v2, v1p);
@@ -122,19 +132,19 @@ bool triangle::hit_geometric(const ray& r, interval ray_bounds, hit_record& rec)
    - If det(M) < 0 ray is backfacing
 */
 bool triangle::hit_moller_trumbore(const ray& r, interval ray_bounds, hit_record& rec) const {
-    point3 v0 = v[0] + r.time()*direction;
-    point3 v1 = v[1] + r.time()*direction;
-    point3 v2 = v[2] + r.time()*direction;
+    point3 v0t = v0() + r.time()*direction;
+    point3 v1t = v1() + r.time()*direction;
+    point3 v2t = v2() + r.time()*direction;
 
-    vec3 e1 = v1 - v0;
-    vec3 e2 = v2 - v0;
+    vec3 e1 = v1t - v0t;
+    vec3 e2 = v2t - v0t;
     vec3 dxe2 = cross(r.dir, e2);
     double detM = dot(dxe2, e1);
 
     if (detM == 0) return false;
     
     double invDet = 1/detM;
-    vec3 T = (r.orig - v0);
+    vec3 T = (r.orig - v0t);
     double u = dot(dxe2, T) * invDet;
     if (u < 0 || u > 1) return false;
 
@@ -151,6 +161,14 @@ bool triangle::hit_moller_trumbore(const ray& r, interval ray_bounds, hit_record
     rec.set_face_normal(r, unit_vector(normal));
     rec.mat = mat;
     rec.u = u; rec.v = v;
+
+    // Calculating uv's
+    // double w = 1 - u - v;
+    // vec2 t0 = vertices[0].TexCoords;
+    // vec2 t1 = vertices[1].TexCoords;
+    // vec2 t2 = vertices[2].TexCoords;
+    // rec.u = u*t0[0] + v*t1[0] + w*t2[0];
+    // rec.v = u*t0[1] + v*t1[1] + w*t2[1];
     
     return true;
 }
@@ -162,10 +180,22 @@ void mesh_to_hittables(Model &model, hittable_list &hittables, std::shared_ptr<m
         Mesh mesh = model.meshes[m];
         int acc = 0;
         for (int i = 0; i < mesh.indices.size(); i += 3) {
+            // Vertices
             point3 v0 = mesh.vertices[mesh.indices[i]].Position;
             point3 v1 = mesh.vertices[mesh.indices[i+1]].Position;
             point3 v2 = mesh.vertices[mesh.indices[i+2]].Position;
-            std::shared_ptr<triangle> tri = std::make_shared<triangle>(triangle{v0, v1, v2, mat, direction});
+            // Normals
+            vec3 n0 = mesh.vertices[mesh.indices[i]].Normal;
+            vec3 n1 = mesh.vertices[mesh.indices[i+1]].Normal;
+            vec3 n2 = mesh.vertices[mesh.indices[i+2]].Normal;
+            // TexCoords
+            vec2 t0 = mesh.vertices[mesh.indices[i]].TexCoords;
+            vec2 t1 = mesh.vertices[mesh.indices[i+1]].TexCoords;
+            vec2 t2 = mesh.vertices[mesh.indices[i+2]].TexCoords;
+            Vertex vertex0 {v0, n0, t0};
+            Vertex vertex1 {v1, n1, t1};
+            Vertex vertex2 {v2, v2, t2};
+            std::shared_ptr<triangle> tri = std::make_shared<triangle>(triangle{vertex0, vertex1, vertex2, mat});
             hittables.add(tri);
             acc += 1;
         }

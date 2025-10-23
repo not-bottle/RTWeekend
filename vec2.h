@@ -10,6 +10,12 @@ class vec2 {
 
         double operator[](int i) const { return e[i]; }
         double& operator[](int i) { return e[i]; }; 
+
+        vec2& operator*=(double t) {
+            e[0] *= t;
+            e[1] *= t;
+            return *this;
+        }
 };
 
 #endif // VEC2_H
