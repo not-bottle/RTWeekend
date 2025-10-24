@@ -6,6 +6,7 @@
 #include "colour.h"
 #include "hittable.h"
 #include "material.h"
+#include "texture.h"
 
 #include <iostream>
 
@@ -24,6 +25,7 @@ class camera {
     double defocus_angle = 0; // Variation angle of rays originating from disk
     //                           (Think of it like a cone) 
     double focus_dist = 10; // Distance from lookfrom point to plane (of perfect focus)
+    std::shared_ptr<texture> background = std::make_shared<sky_gradient>();
 
     void render(const hittable& world) {
         initialize();
@@ -55,7 +57,6 @@ class camera {
     vec3 u, v, w; // Camera basis vectors (orthonormal)
     vec3 defocus_disk_u; // Defocus disk horizontal radius
     vec3 defocus_disk_v; // Defocus disk vertical radius
-
 
     void initialize() {
         image_height = static_cast<int>(image_width / aspect_ratio);
@@ -125,10 +126,30 @@ class camera {
 
         }
     
-        // Sky
-        vec3 unit_direction = unit_vector(r.direction());
-        auto a = 0.5*(unit_direction.y() + 1.0);
-        return (1.0-a)*colour(1.0, 1.0, 1.0) + a*colour(0.5, 0.7, 1.0);
+        // Skysphere
+        vec3 unit_dir = unit_vector(r.dir);
+        
+        double skysphere_radius = 1000.0;
+        vec3 oc = r.origin() - lookfrom;
+        auto a = r.direction().length_squared();
+        auto half_b = dot(r.direction(), oc);
+        auto c = oc.length_squared() - skysphere_radius*skysphere_radius;
+
+        auto discriminant = half_b*half_b - a*c;
+        if (discriminant < 0) return vec3(0, 1, 1);
+        auto sqrtd = sqrt(discriminant);
+
+        // Find the nearest root that lies in the acceptable range.
+        auto root = (-half_b - sqrtd) / a;
+        if (root < 0.001) {
+            root = (-half_b + sqrtd) / a;
+        }
+
+        vec3 hit_normal = (r.at(root) - lookfrom) / skysphere_radius;
+
+        double phi = std::atan2(-hit_normal.z(), hit_normal.x()) + pi;
+        double theta = std::acos(-hit_normal.y());
+        return background->value(phi / (2*pi), theta / pi, unit_dir);
     }
 
     ray get_ray(int i, int j) const {

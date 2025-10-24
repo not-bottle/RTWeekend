@@ -19,40 +19,32 @@ void load_earth(hittable_list& world, camera& cam);
 int main() {
     hittable_list world;
     camera cam;
-    auto material_ground = std::make_shared<lambertian>(colour(0.8, 0.8, 0.0));
-    auto material_center = std::make_shared<lambertian>(colour(0.1, 0.2, 0.5));
+    
+    // auto material_normal = std::make_shared<shade_normal>();
+    // Model model = Model("./test_objects/backpack/backpack.obj");
+    // mesh_to_hittables(model, world, nullptr, vec3(0.0, 0.0, 0.0));
+    // world = hittable_list(std::make_shared<bvh_node>(world));
+
     auto material_left   = std::make_shared<dielectric>(1.50);
     auto material_bubble = std::make_shared<dielectric>(1.00 / 1.50);
     auto material_right  = std::make_shared<metal>(colour(0.8, 0.6, 0.2), 0.075);
     auto material_right2  = std::make_shared<metal>(colour(0.7, 0.6, 0.5), 0.0);
 
-    auto material_earth = std::make_shared<lambertian>(std::make_shared<image_texture>("earthmap.jpg"));
-
-    world.add(std::make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, material_ground));
-    world.add(std::make_shared<sphere>(point3( 0.0,  0.0,   -3.0),   1.0, material_center));
-    world.add(std::make_shared<sphere>(point3( 1.25,  0.0,    0.75),   0.5, material_bubble));
-    world.add(std::make_shared<sphere>(point3(-1.25,  0.0,    0.75),   0.5, material_right));
-    world.add(std::make_shared<sphere>(point3( 0.0,  8.0,    -7.0),   6.0, material_right2));
-
-    Model model = Model("./test_objects/suzanne.obj");
-    mesh_to_hittables(model, world, material_earth, vec3(0.0, 0.0, 0.0));
-    world = hittable_list(std::make_shared<bvh_node>(world));
-
-    std::cerr << "World Size: " << world.objects.size() << std::endl;
+    world.add(std::make_shared<sphere>(point3( 0.0,  0.0,    0.0),   1.5, material_left));
 
     cam.aspect_ratio      = 16.0 / 9.0;
-    cam.image_width       = 800;
-    cam.samples_per_pixel = 64;
+    cam.image_width       = 1600;
+    cam.samples_per_pixel = 256;
     cam.max_depth         = 50;
 
     cam.vfov     = 90;
-    cam.lookfrom = point3(0,0,2.0);
+    cam.lookfrom = point3(0,0.0,3.0);
     cam.lookat   = point3(0,0,1);
     cam.vup      = vec3(0,1,0);
 
     cam.defocus_angle = 0.0;
     cam.focus_dist    = 1.0;
-
+    cam.background = std::make_shared<image_texture>("Sky-081.jpg");
 
     auto render_start_time = std::chrono::steady_clock::now();
     cam.render(world);
@@ -76,7 +68,7 @@ void load_suzanne_normal(hittable_list& world, camera& cam)
     cam.max_depth         = 50;
 
     cam.vfov     = 90;
-    cam.lookfrom = point3(0,0,1.5);
+    cam.lookfrom = point3(0,0.0,1.5);
     cam.lookat   = point3(0,0,1);
     cam.vup      = vec3(0,1,0);
 
@@ -234,4 +226,40 @@ void load_earth(hittable_list& world, camera& cam) {
     cam.vup      = vec3(0,1,0);
 
     cam.defocus_angle = 0;
+}
+
+void load_suzanne_scene(hittable_list& world, camera& cam) {
+    auto material_ground = std::make_shared<lambertian>(colour(0.8, 0.8, 0.0));
+    auto material_center = std::make_shared<lambertian>(colour(0.1, 0.2, 0.5));
+    auto material_left   = std::make_shared<dielectric>(1.50);
+    auto material_bubble = std::make_shared<dielectric>(1.00 / 1.50);
+    auto material_right  = std::make_shared<metal>(colour(0.8, 0.6, 0.2), 0.075);
+    auto material_right2  = std::make_shared<metal>(colour(0.7, 0.6, 0.5), 0.0);
+
+    auto material_earth = std::make_shared<lambertian>(std::make_shared<image_texture>("earthmap.jpg"));
+
+    world.add(std::make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, material_ground));
+    world.add(std::make_shared<sphere>(point3( 0.0,  0.0,   -3.0),   1.0, material_center));
+    world.add(std::make_shared<sphere>(point3( 1.25,  0.0,    0.75),   0.5, material_bubble));
+    world.add(std::make_shared<sphere>(point3(-1.25,  0.0,    0.75),   0.5, material_right));
+    world.add(std::make_shared<sphere>(point3( 0.0,  8.0,    -7.0),   6.0, material_right2));
+
+    Model model = Model("./test_objects/suzanne.obj");
+    mesh_to_hittables(model, world, material_earth, vec3(0.0, 0.0, 0.0));
+    world = hittable_list(std::make_shared<bvh_node>(world));
+
+    std::cerr << "World Size: " << world.objects.size() << std::endl;
+
+    cam.aspect_ratio      = 16.0 / 9.0;
+    cam.image_width       = 800;
+    cam.samples_per_pixel = 64;
+    cam.max_depth         = 50;
+
+    cam.vfov     = 90;
+    cam.lookfrom = point3(0,0,2.0);
+    cam.lookat   = point3(0,0,1);
+    cam.vup      = vec3(0,1,0);
+
+    cam.defocus_angle = 0.0;
+    cam.focus_dist    = 1.0;
 }

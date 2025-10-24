@@ -2,9 +2,11 @@
 #define MESH_H
 
 #include "vec3.h"
+#include "rtw_stb_image.h"
 
 #include <string>
 #include <vector>
+#include <memory>
 
 struct Vertex {
     // position
@@ -19,6 +21,7 @@ struct Texture {
     unsigned int id;
     std::string type;
     std::string path;
+    std::shared_ptr<rtw_image> texture;
 };
 
 class Mesh {

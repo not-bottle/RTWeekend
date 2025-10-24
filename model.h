@@ -6,7 +6,6 @@
 #include <assimp/postprocess.h>
 
 #include "mesh.h"
-#include "rtw_stb_image.h"
 
 #include <string>
 #include <fstream>
@@ -101,7 +100,7 @@ private:
             if (mesh->HasTextureCoords(0))
             {
                 vector2[0] = mesh->mTextureCoords[0][i].x;
-                vector[1] = mesh->mTextureCoords[0][i].y;
+                vector2[1] = mesh->mTextureCoords[0][i].y;
                 vertex.TexCoords = vector2;
             }
             vertices.push_back(vertex);
@@ -165,6 +164,9 @@ private:
                 Texture texture;
                 texture.type = typeName;
                 texture.path = str.C_Str();
+                std::string texture_path = directory + "/" + texture.path;
+                std::cerr << "Attempting to load texture at path: " << texture_path << std::endl;
+                texture.texture = std::make_shared<rtw_image>(texture_path.c_str());
                 textures.push_back(texture);
                 textures_loaded.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
             }

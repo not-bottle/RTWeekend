@@ -5,6 +5,7 @@
 #include "hittable_list.h"
 #include "interval.h"
 #include "vec3.h"
+#include "texture.h"
 
 #include "model.h"
 
@@ -24,7 +25,7 @@ class triangle : public hittable {
         }
 
         triangle(Vertex v0, Vertex v1, Vertex v2, std::shared_ptr<material> material)
-         : vertices{v0, v1, v2}, mat{material}, direction{vec3()} {}
+         : triangle(v0, v1, v2, material, vec3()) {}
 
         triangle(point3 v0, point3 v1, point3 v2, std::shared_ptr<material> material)
          : triangle(Vertex{v0, vec3(), vec2()}, Vertex{v1, vec3(), vec2()}, Vertex{v2, vec3(), vec2()}, material, vec3()) {}
@@ -163,12 +164,12 @@ bool triangle::hit_moller_trumbore(const ray& r, interval ray_bounds, hit_record
     rec.u = u; rec.v = v;
 
     // Calculating uv's
-    // double w = 1 - u - v;
-    // vec2 t0 = vertices[0].TexCoords;
-    // vec2 t1 = vertices[1].TexCoords;
-    // vec2 t2 = vertices[2].TexCoords;
-    // rec.u = u*t0[0] + v*t1[0] + w*t2[0];
-    // rec.v = u*t0[1] + v*t1[1] + w*t2[1];
+    double w = 1 - u - v;
+    vec2 t0 = vertices[0].TexCoords;
+    vec2 t1 = vertices[1].TexCoords;
+    vec2 t2 = vertices[2].TexCoords;
+    rec.u = w*t0[0] + u*t1[0] + v*t2[0];
+    rec.v = w*t0[1] + u*t1[1] + v*t2[1];
     
     return true;
 }
@@ -178,6 +179,17 @@ void mesh_to_hittables(Model &model, hittable_list &hittables, std::shared_ptr<m
     std::cerr << "Num meshes:" << model.meshes.size() << std::endl;
     for (int m = 0; m < model.meshes.size(); m++) {
         Mesh mesh = model.meshes[m];
+
+        //std::cerr << "Loading Mesh " << m << ": " << std::endl;
+
+        // Loading texture
+        std::shared_ptr<material> tex = mat;
+        if (mat == nullptr) {
+            if (mesh.textures[0].type.compare("texture_diffuse") == 0) {
+                tex = std::make_shared<lambertian>(std::make_shared<image_texture>(mesh.textures[0].texture));
+            }
+        }
+
         int acc = 0;
         for (int i = 0; i < mesh.indices.size(); i += 3) {
             // Vertices
@@ -195,11 +207,11 @@ void mesh_to_hittables(Model &model, hittable_list &hittables, std::shared_ptr<m
             Vertex vertex0 = Vertex{v0, n0, t0};
             Vertex vertex1 = Vertex{v1, n1, t1};
             Vertex vertex2 = Vertex{v2, v2, t2};
-            std::shared_ptr<triangle> tri = std::make_shared<triangle>(triangle{vertex0, vertex1, vertex2, mat});
+            std::shared_ptr<triangle> tri = std::make_shared<triangle>(vertex0, vertex1, vertex2, tex, direction);
             hittables.add(tri);
             acc += 1;
         }
-        std::cerr << "Num triangles in mesh: " << acc << std::endl;
+        std::cerr << "Num triangles in mesh " << m << ": " << acc << std::endl;
     }
 }
 

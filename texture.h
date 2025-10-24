@@ -52,28 +52,46 @@ class checker_texture : public texture {
         std::shared_ptr<texture> odd;
 };
 
+class sky_gradient : public texture {
+    public:
+        sky_gradient() : colour0(colour(1.0, 1.0, 1.0)), colour1(colour(0.5, 0.7, 1.0)) {}
+        sky_gradient(colour colour0, colour colour1) : colour0(colour0), colour1(colour1) {}
+
+        colour value(double u, double v, const point3& p) const override {
+            // Treat p as a direction vector here
+            vec3 unit_direction = unit_vector(p);
+            auto a = 0.5*(unit_direction.y() + 1.0);
+            return (1.0-a)*colour0 + a*colour1;
+        }
+        
+    private:
+        colour colour0;
+        colour colour1;
+};
+
 class image_texture : public texture {
     public:
-        image_texture(const char* filename) : image(filename) {}
+        image_texture(const char* filename) : image(std::make_shared<rtw_image>(filename)) {}
+        image_texture(std::shared_ptr<rtw_image> image) : image(image) {}
 
         colour value(double u, double v, const point3& p) const override {
             // If we have no texture data, then return solid cyan as a debugging aid.
-            if (image.height() <= 0) return colour(0, 1, 1);
+            if (image->height() <= 0) return colour(0, 1, 1);
 
             // Clamp input texture coordinates to [0,1] x [1,0]
             u = interval(0,1).clamp(u);
             v = 1.0 - interval(0,1).clamp(v); // Flip V to image coordinates
 
-            auto i = int(u * image.width());
-            auto j = int(v * image.height());
-            auto pixel = image.pixel_data(i,j);
+            auto i = int(u * image->width());
+            auto j = int(v * image->height());
+            auto pixel = image->pixel_data(i,j);
 
             auto colour_scale = 1.0 / 255.0;
             return colour(colour_scale*pixel[0], colour_scale*pixel[1], colour_scale*pixel[2]);
         }
     
     private:
-        rtw_image image;
+        std::shared_ptr<rtw_image> image;
 };
 
 #endif // TEXTURE_H
