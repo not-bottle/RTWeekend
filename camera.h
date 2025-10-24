@@ -14,6 +14,7 @@ class camera {
   public:
     double aspect_ratio = 1.0; // Ratio of image width over height
     int image_width = 100; // Rendered image width in pixel count
+    int image_height; // Rendered image height
     int samples_per_pixel = 10; // Count of random samples for each pixel
     int max_depth = 10; // Maximum number of times rays are allowed to bounce
 
@@ -49,7 +50,6 @@ class camera {
     }
 
   private:
-    int image_height; // Rendered image height
     point3 centre; // Camera centre
     point3 pixel00_loc; // Localtion of pixel 0,0
     vec3 pixel_delta_u; // Offset to pixel to the right
