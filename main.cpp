@@ -8,6 +8,7 @@
 #include "sphere.h"
 #include "triangle.h"
 #include "texture.h"
+#include "render.h"
 
 #include <chrono>
 
@@ -15,6 +16,9 @@ void load_final_scene(hittable_list& world, camera& cam);
 void load_final_scene_motion_blur(hittable_list& world, camera& cam);
 void load_checkered_spheres(hittable_list& world, camera& cam);
 void load_earth(hittable_list& world, camera& cam);
+void load_suzanne_scene(hittable_list& world, camera& cam);
+
+const int THREAD_COUNT = 11;
 
 int main() {
     hittable_list world;
@@ -25,29 +29,32 @@ int main() {
     // mesh_to_hittables(model, world, nullptr, vec3(0.0, 0.0, 0.0));
     // world = hittable_list(std::make_shared<bvh_node>(world));
 
-    auto material_left   = std::make_shared<dielectric>(1.50);
-    auto material_bubble = std::make_shared<dielectric>(1.00 / 1.50);
-    auto material_right  = std::make_shared<metal>(colour(0.8, 0.6, 0.2), 0.075);
-    auto material_right2  = std::make_shared<metal>(colour(0.7, 0.6, 0.5), 0.0);
+    // auto material_left   = std::make_shared<dielectric>(1.50);
+    // auto material_bubble = std::make_shared<dielectric>(1.00 / 1.50);
+    // auto material_right  = std::make_shared<metal>(colour(0.8, 0.6, 0.2), 0.075);
+    // auto material_right2  = std::make_shared<metal>(colour(0.7, 0.6, 0.5), 0.0);
 
-    world.add(std::make_shared<sphere>(point3( 0.0,  0.0,    0.0),   1.5, material_left));
+    // world.add(std::make_shared<sphere>(point3( 0.0,  0.0,    0.0),   1.5, material_left));
 
-    cam.aspect_ratio      = 16.0 / 9.0;
-    cam.image_width       = 1600;
-    cam.samples_per_pixel = 256;
-    cam.max_depth         = 50;
+    // cam.aspect_ratio      = 16.0 / 9.0;
+    // cam.image_width       = 200;
+    // cam.samples_per_pixel = 256;
+    // cam.max_depth         = 50;
 
-    cam.vfov     = 90;
-    cam.lookfrom = point3(0,0.0,3.0);
-    cam.lookat   = point3(0,0,1);
-    cam.vup      = vec3(0,1,0);
+    // cam.vfov     = 90;
+    // cam.lookfrom = point3(0,0.0,3.0);
+    // cam.lookat   = point3(0,0,1);
+    // cam.vup      = vec3(0,1,0);
 
-    cam.defocus_angle = 0.0;
-    cam.focus_dist    = 1.0;
-    cam.background = std::make_shared<image_texture>("Sky-081.jpg");
+    // cam.defocus_angle = 0.0;
+    // cam.focus_dist    = 1.0;
+    // cam.background = std::make_shared<image_texture>("Sky-081.jpg");
 
+    load_suzanne_scene(world, cam);
+
+    render r{THREAD_COUNT};
     auto render_start_time = std::chrono::steady_clock::now();
-    cam.render(world);
+    r.create_image(std::cout, cam, world);
     auto render_finish_time = std::chrono::steady_clock::now();
     auto render_duration = std::chrono::duration_cast<std::chrono::milliseconds>(render_finish_time - render_start_time).count();
     std::cerr << "Render time: " << render_duration << "ms" << std::endl;

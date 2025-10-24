@@ -9,6 +9,7 @@
 #include "texture.h"
 
 #include <iostream>
+#include <thread>
 
 class camera {
   public:
@@ -28,14 +29,12 @@ class camera {
     double focus_dist = 10; // Distance from lookfrom point to plane (of perfect focus)
     std::shared_ptr<texture> background = std::make_shared<sky_gradient>();
 
-    void render(const hittable& world) {
+    void render(const hittable& world, std::vector<colour>& data) {
         initialize();
-
-        std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
         for (int j = 0; j < image_height; ++j) {
 
-            std::cerr << "\rScanlines remaining: " << image_height - j << ' ' << std::flush;
+            //std::cerr << "Thread " << std::this_thread::get_id() << ": " << "\rScanlines remaining: " << image_height - j << ' ' << std::flush;
 
             for (int i = 0; i < image_width; ++i) {
                 colour pixel_colour(0, 0, 0);
@@ -43,20 +42,11 @@ class camera {
                     ray r = get_ray(i, j);
                     pixel_colour += ray_colour(r, max_depth, world);
                 }
-                write_colour(std::cout, pixel_colour, samples_per_pixel);
+                data.push_back(pixel_colour);
             }
         }
-        std::cerr << "\nDone.\n";
+        //std::cerr << "Thread " << std::this_thread::get_id() << ": " << "\nDone.\n";
     }
-
-  private:
-    point3 centre; // Camera centre
-    point3 pixel00_loc; // Localtion of pixel 0,0
-    vec3 pixel_delta_u; // Offset to pixel to the right
-    vec3 pixel_delta_v; // Offset to pixel below
-    vec3 u, v, w; // Camera basis vectors (orthonormal)
-    vec3 defocus_disk_u; // Defocus disk horizontal radius
-    vec3 defocus_disk_v; // Defocus disk vertical radius
 
     void initialize() {
         image_height = static_cast<int>(image_width / aspect_ratio);
@@ -100,6 +90,15 @@ class camera {
         defocus_disk_u = u * defocus_radius;
         defocus_disk_v = v * defocus_radius;
     }
+
+  private:
+    point3 centre; // Camera centre
+    point3 pixel00_loc; // Localtion of pixel 0,0
+    vec3 pixel_delta_u; // Offset to pixel to the right
+    vec3 pixel_delta_v; // Offset to pixel below
+    vec3 u, v, w; // Camera basis vectors (orthonormal)
+    vec3 defocus_disk_u; // Defocus disk horizontal radius
+    vec3 defocus_disk_v; // Defocus disk vertical radius
 
 
     colour ray_colour(const ray& r, int depth, const hittable& world) const
