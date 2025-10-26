@@ -128,8 +128,9 @@ class camera {
         // Skysphere
         vec3 unit_dir = unit_vector(r.dir);
         
-        double skysphere_radius = 1000.0;
-        vec3 oc = r.origin() - lookfrom;
+        double skysphere_radius = 13067000.0;
+        point3 skysphere_origin = vec3();
+        vec3 oc = r.origin() - skysphere_origin;
         auto a = r.direction().length_squared();
         auto half_b = dot(r.direction(), oc);
         auto c = oc.length_squared() - skysphere_radius*skysphere_radius;
@@ -144,7 +145,7 @@ class camera {
             root = (-half_b + sqrtd) / a;
         }
 
-        vec3 hit_normal = (r.at(root) - lookfrom) / skysphere_radius;
+        vec3 hit_normal = (r.at(root) - skysphere_origin) / skysphere_radius;
 
         double phi = std::atan2(-hit_normal.z(), hit_normal.x()) + pi;
         double theta = std::acos(-hit_normal.y());

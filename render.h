@@ -27,11 +27,14 @@ class render
             cam.samples_per_pixel = cam.samples_per_pixel / num_threads;
             int remaining_samples = total_samples - (cam.samples_per_pixel * (num_threads - 1));
             
-            // Create threads
-            std::vector<std::vector<colour>> output(num_threads - 1);
-            std::vector<std::thread> threads(num_threads - 1);
+            // Calculate number of threads to use
+            if (cam.samples_per_pixel <= 0) num_threads = 0;
             std::cerr << "Num threads: " << num_threads - 1 << std::endl;
+            int threads_vector_size = (num_threads - 1) > 0 ? num_threads - 1 : 0;
+            std::vector<std::vector<colour>> output(threads_vector_size);
+            std::vector<std::thread> threads(threads_vector_size);
 
+            // Create threads
             for (int i = 0; i < num_threads - 1; i++)
             {
                 output[i] = std::vector<colour>();

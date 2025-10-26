@@ -18,7 +18,7 @@ void load_checkered_spheres(hittable_list& world, camera& cam);
 void load_earth(hittable_list& world, camera& cam);
 void load_suzanne_scene(hittable_list& world, camera& cam);
 
-const int THREAD_COUNT = 11;
+const int THREAD_COUNT = 10;
 
 int main() {
     hittable_list world;
@@ -50,7 +50,39 @@ int main() {
     // cam.focus_dist    = 1.0;
     // cam.background = std::make_shared<image_texture>("Sky-081.jpg");
 
-    load_suzanne_scene(world, cam);
+    // load_final_scene_motion_blur(world, cam);
+    // cam.background = std::make_shared<image_texture>("772-hdri-skies-com.png");
+    // cam.samples_per_pixel = 500;
+    // cam.vfov = 120;
+    // cam.lookfrom += vec3(-6.0, 0.0, 1.0);
+    // cam.lookfrom = cam.lookfrom - 0.4*cam.lookfrom;
+    // cam.lookat = point3(2.0, 0.0, 0.0);
+
+    // cam.defocus_angle = 0.1;
+    // cam.focus_dist    = 1.0;
+
+    auto material_normal = std::make_shared<dielectric>(1.5);
+    Model model = Model("./test_objects/newell_teaset/teapot.obj");
+    mesh_to_hittables(model, world, material_normal, vec3(0.0, 0.0, 0.0));
+    world = hittable_list(std::make_shared<bvh_node>(world));
+
+    std::cerr << "World Size: " << world.objects.size() << std::endl;
+
+    cam.aspect_ratio      = 16.0 / 9.0;
+    cam.image_width       = 1280;
+    cam.samples_per_pixel = 32;
+    cam.max_depth         = 50;
+
+    cam.vfov     = 90;
+    cam.lookfrom = point3(6.0,3.0,0.0);
+    cam.lookat   = point3(0,0,1);
+    cam.vup      = vec3(0,1,0);
+
+    cam.defocus_angle = 0.0;
+    cam.focus_dist    = 1.0;  
+
+    cam.background = std::make_shared<image_texture>("aristea_wreck_4k.png");
+
 
     render r{THREAD_COUNT};
     auto render_start_time = std::chrono::steady_clock::now();
@@ -155,7 +187,7 @@ void load_final_scene_motion_blur(hittable_list& world, camera& cam)
     cam.focus_dist    = 10.0;
 
     auto ground_material = std::make_shared<checker_texture>(0.32, colour(.2, .3, .1), colour(.9, .9, .9));
-    world.add(std::make_shared<sphere>(point3(0,-1000,0), 1000, std::make_shared<lambertian>(ground_material)));
+    world.add(std::make_shared<sphere>(point3(0,-1000,0), 1000, std::make_shared<metal>(colour(0.3, 0.3, 0.6), 0.0)));
 
     for (int a = -11; a < 11; a++) {
         for (int b = -11; b < 11; b++) {
