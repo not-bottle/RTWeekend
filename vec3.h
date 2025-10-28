@@ -11,6 +11,7 @@ class vec3 {
         double e[3]; // 3D Vector
 
         vec3() : e{0,0,0} {}
+        vec3(double e) : e{e, e, e} {}
         vec3(double e0, double e1, double e2) : e{e0, e1, e2} {}
 
         double x() const { return e[0]; }
@@ -20,6 +21,10 @@ class vec3 {
         vec3 operator-() const { return vec3(-e[0], -e[1], -e[2]); }
         double operator[](int i) const { return e[i]; }
         double& operator[](int i) { return e[i]; }
+
+        bool operator==(const vec3& other) const {
+            return x() == other.x() && y() == other.y() && z() == other.z();
+        }
 
         vec3& operator+=(const vec3 &v) {
             e[0] += v[0];

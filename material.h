@@ -107,13 +107,24 @@ class dielectric : public material {
         }
 };
 
+class facing_ratio : public material {
+    public:
+        facing_ratio() {}
+    bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered)
+        const override {
+            scattered = ray(rec.p, vec3(), r_in.time());
+            attenuation = colour(std::max(dot(unit_vector(rec.normal), unit_vector(-r_in.dir)), 0.0));
+            return true;
+        }
+};
+
 class shade_normal : public material {
     public:
         shade_normal() {}
 
     bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered)
         const override {
-            scattered = ray(rec.p, rec.normal, r_in.time());
+            scattered = ray(rec.p, vec3(), r_in.time());
             attenuation = colour(rec.normal);
             return true;
         }

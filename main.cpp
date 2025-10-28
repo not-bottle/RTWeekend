@@ -17,72 +17,15 @@ void load_final_scene_motion_blur(hittable_list& world, camera& cam);
 void load_checkered_spheres(hittable_list& world, camera& cam);
 void load_earth(hittable_list& world, camera& cam);
 void load_suzanne_scene(hittable_list& world, camera& cam);
+void load_perlin_spheres(hittable_list& world, camera& cam);
 
 const int THREAD_COUNT = 10;
 
 int main() {
     hittable_list world;
     camera cam;
-    
-    // auto material_normal = std::make_shared<shade_normal>();
-    // Model model = Model("./test_objects/backpack/backpack.obj");
-    // mesh_to_hittables(model, world, nullptr, vec3(0.0, 0.0, 0.0));
-    // world = hittable_list(std::make_shared<bvh_node>(world));
 
-    // auto material_left   = std::make_shared<dielectric>(1.50);
-    // auto material_bubble = std::make_shared<dielectric>(1.00 / 1.50);
-    // auto material_right  = std::make_shared<metal>(colour(0.8, 0.6, 0.2), 0.075);
-    // auto material_right2  = std::make_shared<metal>(colour(0.7, 0.6, 0.5), 0.0);
-
-    // world.add(std::make_shared<sphere>(point3( 0.0,  0.0,    0.0),   1.5, material_left));
-
-    // cam.aspect_ratio      = 16.0 / 9.0;
-    // cam.image_width       = 200;
-    // cam.samples_per_pixel = 256;
-    // cam.max_depth         = 50;
-
-    // cam.vfov     = 90;
-    // cam.lookfrom = point3(0,0.0,3.0);
-    // cam.lookat   = point3(0,0,1);
-    // cam.vup      = vec3(0,1,0);
-
-    // cam.defocus_angle = 0.0;
-    // cam.focus_dist    = 1.0;
-    // cam.background = std::make_shared<image_texture>("Sky-081.jpg");
-
-    // load_final_scene_motion_blur(world, cam);
-    // cam.background = std::make_shared<image_texture>("772-hdri-skies-com.png");
-    // cam.samples_per_pixel = 500;
-    // cam.vfov = 120;
-    // cam.lookfrom += vec3(-6.0, 0.0, 1.0);
-    // cam.lookfrom = cam.lookfrom - 0.4*cam.lookfrom;
-    // cam.lookat = point3(2.0, 0.0, 0.0);
-
-    // cam.defocus_angle = 0.1;
-    // cam.focus_dist    = 1.0;
-
-    auto material_normal = std::make_shared<dielectric>(1.5);
-    Model model = Model("./test_objects/newell_teaset/teapot.obj");
-    mesh_to_hittables(model, world, material_normal, vec3(0.0, 0.0, 0.0));
-    world = hittable_list(std::make_shared<bvh_node>(world));
-
-    std::cerr << "World Size: " << world.objects.size() << std::endl;
-
-    cam.aspect_ratio      = 16.0 / 9.0;
-    cam.image_width       = 1280;
-    cam.samples_per_pixel = 32;
-    cam.max_depth         = 50;
-
-    cam.vfov     = 90;
-    cam.lookfrom = point3(6.0,3.0,0.0);
-    cam.lookat   = point3(0,0,1);
-    cam.vup      = vec3(0,1,0);
-
-    cam.defocus_angle = 0.0;
-    cam.focus_dist    = 1.0;  
-
-    cam.background = std::make_shared<image_texture>("aristea_wreck_4k.png");
-
+    load_perlin_spheres(world, cam);
 
     render r{THREAD_COUNT};
     auto render_start_time = std::chrono::steady_clock::now();
@@ -301,4 +244,48 @@ void load_suzanne_scene(hittable_list& world, camera& cam) {
 
     cam.defocus_angle = 0.0;
     cam.focus_dist    = 1.0;
+}
+
+void load_teapot(hittable_list& world, camera& cam) {
+    auto material_normal = std::make_shared<metal>(colour(0.6, 0.7, 0.6), 0.0);
+    Model model = Model("./test_objects/newell_teaset/teapot.obj");
+    //model.smoothVertexNormals();
+    mesh_to_hittables(model, world, material_normal, vec3(0.0, 0.0, 0.0));
+    world = hittable_list(std::make_shared<bvh_node>(world));
+
+    std::cerr << "World Size: " << world.objects.size() << std::endl;
+
+    cam.aspect_ratio      = 16.0 / 9.0;
+    cam.image_width       = 800;
+    cam.samples_per_pixel = 64;
+    cam.max_depth         = 50;
+
+    cam.vfov     = 45;
+    cam.lookfrom = point3(5.0,1.5,0.0);
+    cam.lookat   = point3(0,1.5,0);
+    cam.vup      = vec3(0,1,0);
+
+    cam.defocus_angle = 0.0;
+    cam.focus_dist    = 1.0;
+
+    cam.background = std::make_shared<image_texture>("772-hdri-skies-com.png"); 
+}
+
+void load_perlin_spheres(hittable_list& world, camera& cam) {
+
+    auto pertext = std::make_shared<noise_texture>();
+    world.add(std::make_shared<sphere>(point3(0,-1000,0), 1000, std::make_shared<lambertian>(pertext)));
+    world.add(std::make_shared<sphere>(point3(0,2,0), 2, std::make_shared<lambertian>(pertext)));
+
+    cam.aspect_ratio      = 16.0 / 9.0;
+    cam.image_width       = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth         = 50;
+
+    cam.vfov     = 20;
+    cam.lookfrom = point3(13,2,3);
+    cam.lookat   = point3(0,0,0);
+    cam.vup      = vec3(0,1,0);
+
+    cam.defocus_angle = 0;
 }

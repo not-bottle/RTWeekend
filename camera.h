@@ -117,7 +117,9 @@ class camera {
             
             ray scattered;
             colour attenuation;
-            if (rec.mat->scatter(r, rec, attenuation, scattered))
+            bool scatter = rec.mat->scatter(r, rec, attenuation, scattered);
+            if (scattered.dir == vec3()) return attenuation; // Bad workaround to get debug colours directly from scattered
+            if (scatter)
                 return attenuation * ray_colour(scattered, depth-1, world);
             
             // If ray is absorbed, return no colour

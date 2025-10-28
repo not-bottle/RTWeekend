@@ -157,12 +157,6 @@ bool triangle::hit_moller_trumbore(const ray& r, interval ray_bounds, hit_record
 
     if (t < 0 || !ray_bounds.surrounds(t)) return false;
 
-    rec.t = t;
-    rec.p = r.at(t);
-    rec.set_face_normal(r, unit_vector(normal));
-    rec.mat = mat;
-    rec.u = u; rec.v = v;
-
     // Calculating uv's
     double w = 1 - u - v;
     vec2 t0 = vertices[0].TexCoords;
@@ -170,6 +164,14 @@ bool triangle::hit_moller_trumbore(const ray& r, interval ray_bounds, hit_record
     vec2 t2 = vertices[2].TexCoords;
     rec.u = w*t0[0] + u*t1[0] + v*t2[0];
     rec.v = w*t0[1] + u*t1[1] + v*t2[1];
+
+    // Calculate interpolated normal
+    vec3 normal_interp = w*unit_vector(vertices[0].Normal) + u*unit_vector(vertices[1].Normal) + v*unit_vector(vertices[2].Normal);
+
+    rec.t = t;
+    rec.p = r.at(t);
+    rec.set_face_normal(r, unit_vector(normal_interp));
+    rec.mat = mat;
     
     return true;
 }
@@ -206,7 +208,7 @@ void mesh_to_hittables(Model &model, hittable_list &hittables, std::shared_ptr<m
             vec2 t2 = mesh.vertices[mesh.indices[i+2]].TexCoords;
             Vertex vertex0 = Vertex{v0, n0, t0};
             Vertex vertex1 = Vertex{v1, n1, t1};
-            Vertex vertex2 = Vertex{v2, v2, t2};
+            Vertex vertex2 = Vertex{v2, n2, t2};
             std::shared_ptr<triangle> tri = std::make_shared<triangle>(vertex0, vertex1, vertex2, tex, direction);
             hittables.add(tri);
             acc += 1;
