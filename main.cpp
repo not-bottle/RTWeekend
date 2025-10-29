@@ -273,7 +273,7 @@ void load_teapot(hittable_list& world, camera& cam) {
 
 void load_perlin_spheres(hittable_list& world, camera& cam) {
 
-    auto pertext = std::make_shared<noise_texture>();
+    auto pertext = std::make_shared<noise_texture>(4);
     world.add(std::make_shared<sphere>(point3(0,-1000,0), 1000, std::make_shared<lambertian>(pertext)));
     world.add(std::make_shared<sphere>(point3(0,2,0), 2, std::make_shared<lambertian>(pertext)));
 
