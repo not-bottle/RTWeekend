@@ -5,6 +5,7 @@
 #include "colour.h"
 #include "hittable_list.h"
 #include "material.h"
+#include "quad.h"
 #include "sphere.h"
 #include "triangle.h"
 #include "texture.h"
@@ -18,6 +19,7 @@ void load_checkered_spheres(hittable_list& world, camera& cam);
 void load_earth(hittable_list& world, camera& cam);
 void load_suzanne_scene(hittable_list& world, camera& cam);
 void load_perlin_spheres(hittable_list& world, camera& cam);
+void load_quads(hittable_list& world, camera& cam);
 
 const int THREAD_COUNT = 10;
 
@@ -25,7 +27,7 @@ int main() {
     hittable_list world;
     camera cam;
 
-    load_perlin_spheres(world, cam);
+    load_quads(world, cam);
 
     render r{THREAD_COUNT};
     auto render_start_time = std::chrono::steady_clock::now();
@@ -284,6 +286,34 @@ void load_perlin_spheres(hittable_list& world, camera& cam) {
 
     cam.vfov     = 20;
     cam.lookfrom = point3(13,2,3);
+    cam.lookat   = point3(0,0,0);
+    cam.vup      = vec3(0,1,0);
+
+    cam.defocus_angle = 0;
+}
+
+void load_quads(hittable_list& world, camera& cam) {
+    // Materials
+    auto left_red     = std::make_shared<lambertian>(colour(1.0, 0.2, 0.2));
+    auto back_green   = std::make_shared<lambertian>(colour(0.2, 1.0, 0.2));
+    auto right_blue   = std::make_shared<lambertian>(colour(0.2, 0.2, 1.0));
+    auto upper_orange = std::make_shared<lambertian>(colour(1.0, 0.5, 0.0));
+    auto lower_teal   = std::make_shared<lambertian>(colour(0.2, 0.8, 0.8));
+
+    // Quads
+    world.add(std::make_shared<quad>(point3(-3,-2, 5), vec3(0, 0,-4), vec3(0, 4, 0), left_red));
+    world.add(std::make_shared<quad>(point3(-2,-2, 0), vec3(4, 0, 0), vec3(0, 4, 0), back_green));
+    world.add(std::make_shared<quad>(point3( 3,-2, 1), vec3(0, 0, 4), vec3(0, 4, 0), right_blue));
+    world.add(std::make_shared<quad>(point3(-2, 3, 1), vec3(4, 0, 0), vec3(0, 0, 4), upper_orange));
+    world.add(std::make_shared<quad>(point3(-2,-3, 5), vec3(4, 0, 0), vec3(0, 0,-4), lower_teal));
+
+    cam.aspect_ratio      = 1.0;
+    cam.image_width       = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth         = 50;
+
+    cam.vfov     = 80;
+    cam.lookfrom = point3(0,0,9);
     cam.lookat   = point3(0,0,0);
     cam.vup      = vec3(0,1,0);
 
