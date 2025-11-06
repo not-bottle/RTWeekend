@@ -12,13 +12,17 @@ class material {
     public:
         virtual ~material() = default; // Virtual Destructor
 
+        virtual colour emitted(double u, double v, const point3& p) const {
+            return colour(0,0,0);
+        }
+
         /* Virtual function inherited materials need to define.
            Has 3 functions:
               1. Given an incident ray (ray_in), return if the ray was absorbed, or produce a scattered ray.
               2. If the scattered ray is produced, how is the colour attenuated.
         */
         virtual bool scatter(
-            const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered) const = 0;
+            const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered) const { return false; };
 };
 
 class lambertian : public material {
@@ -46,20 +50,21 @@ class lambertian : public material {
 
 class metal : public material {
     public:
-        metal(const colour& _albedo, double f) : albedo(_albedo), fuzz(f < 1 ? f : 1) {}
+        metal(std::shared_ptr<texture> tex, double f) : tex(tex), fuzz(f < 1 ? f : 1) {}
+        metal(const colour& albedo, double f) : metal(std::make_shared<solid_colour>(albedo), fuzz) {}
 
         bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered)
         const override {
             auto reflected = reflect(unit_vector(r_in.direction()), rec.normal);
             scattered = ray(rec.p, reflected + fuzz*random_unit_vector(), r_in.time());
-            attenuation = albedo;
+            attenuation = tex->value(rec.u, rec.v, rec.p);
 
             // Return false (ray is absorbed) if fuzzed ray is pointing back into the object 
             return (dot(scattered.direction(), rec.normal) > 0);
         }
 
     private:
-        colour albedo;
+        std::shared_ptr<texture> tex;
         double fuzz;
 };
 
@@ -105,6 +110,36 @@ class dielectric : public material {
             r0 = r0*r0;
             return r0 + (1-r0)*pow((1 - cosine), 5);
         }
+};
+
+class diffuse_light : public material {
+    public:
+        diffuse_light(std::shared_ptr<texture> tex) : tex(tex) {}
+        diffuse_light(const colour& emit) : tex(std::make_shared<solid_colour>(emit)) {}
+
+        colour emitted(double u, double v, const point3& p) const override {
+            return tex->value(u, v, p);
+        }
+
+    private:
+        std::shared_ptr<texture> tex;
+    
+};
+
+class isotropic : public material {
+    public:
+        isotropic(const colour& albedo) : tex(std::make_shared<solid_colour>(albedo)) {}
+        isotropic(std::shared_ptr<texture> tex) : tex(tex) {}
+
+        bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered)
+        const override {
+            scattered = ray(rec.p, random_unit_vector(), r_in.time());
+            attenuation = tex->value(rec.u, rec.v, rec.p);
+            return true;
+        }
+
+    private:
+        std::shared_ptr<texture> tex;
 };
 
 class facing_ratio : public material {

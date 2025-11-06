@@ -117,17 +117,21 @@ class camera {
             
             ray scattered;
             colour attenuation;
+            colour colour_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p);
+
             bool scatter = rec.mat->scatter(r, rec, attenuation, scattered);
-            if (scattered.dir == vec3()) return attenuation; // Bad workaround to get debug colours directly from scattered
-            if (scatter)
-                return attenuation * ray_colour(scattered, depth-1, world);
+            //if (scattered.dir == vec3()) return attenuation; // Bad workaround to get debug colours directly from scattered
+            // If we don't scatter, ray is absorbed, return the colour from the emission (colour(0,0,0) unless its a light emitting material)
+            if (!scatter)
+                return colour_from_emission;
             
-            // If ray is absorbed, return no colour
-            return colour(0, 0, 0);
+            colour colour_from_scatter = attenuation * ray_colour(scattered, depth-1, world);
+            
+            return colour_from_emission + colour_from_scatter;
 
         }
     
-        // Skysphere
+        // If ray hits nothing return background colour (using a skysphere texture)
         vec3 unit_dir = unit_vector(r.dir);
         
         double skysphere_radius = 13067000.0;

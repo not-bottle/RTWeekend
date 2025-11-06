@@ -167,10 +167,11 @@ bool triangle::hit_moller_trumbore(const ray& r, interval ray_bounds, hit_record
 
     // Calculate interpolated normal
     vec3 normal_interp = w*unit_vector(vertices[0].Normal) + u*unit_vector(vertices[1].Normal) + v*unit_vector(vertices[2].Normal);
+    vec3 normal_final = normal;
 
     rec.t = t;
     rec.p = r.at(t);
-    rec.set_face_normal(r, unit_vector(normal_interp));
+    rec.set_face_normal(r, unit_vector(normal_final));
     rec.mat = mat;
     
     return true;
