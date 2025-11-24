@@ -19,6 +19,7 @@ void load_final_scene_motion_blur(hittable_list& world, camera& cam);
 void load_checkered_spheres(hittable_list& world, camera& cam);
 void load_earth(hittable_list& world, camera& cam);
 void load_suzanne_scene(hittable_list& world, camera& cam);
+void load_teapot(hittable_list& world, camera& cam);
 void load_perlin_spheres(hittable_list& world, camera& cam);
 void load_quads(hittable_list& world, camera& cam);
 void load_simple_light(hittable_list& world, camera& cam);
@@ -32,7 +33,7 @@ int main() {
     hittable_list world;
     camera cam;
 
-    load_simple_light(world, cam);
+    load_teapot(world, cam);
 
     render r{THREAD_COUNT};
     auto render_start_time = std::chrono::steady_clock::now();
@@ -254,7 +255,9 @@ void load_suzanne_scene(hittable_list& world, camera& cam) {
 }
 
 void load_teapot(hittable_list& world, camera& cam) {
-    auto material_normal = std::make_shared<metal>(colour(0.6, 0.7, 0.6), 0.0);
+    //auto material_normal = std::make_shared<metal>(colour(0.6, 0.7, 0.6), 0.0);
+    auto material_normal = std::make_shared<dielectric>(1.33);
+    //auto material_normal = std::make_shared<shade_normal>();
     Model model = Model("./test_objects/newell_teaset/teapot.obj");
     //model.smoothVertexNormals();
     mesh_to_hittables(model, world, material_normal, vec3(0.0, 0.0, 0.0));
@@ -276,6 +279,7 @@ void load_teapot(hittable_list& world, camera& cam) {
     cam.focus_dist    = 1.0;
 
     cam.background = std::make_shared<image_texture>("772-hdri-skies-com.png"); 
+    cam.background_brightness = 2.0;
 }
 
 void load_perlin_spheres(hittable_list& world, camera& cam) {

@@ -28,6 +28,7 @@ class camera {
     //                           (Think of it like a cone) 
     double focus_dist = 10; // Distance from lookfrom point to plane (of perfect focus)
     std::shared_ptr<texture> background = std::make_shared<sky_gradient>();
+    double background_brightness = 1.0;
 
     void render(const hittable& world, std::vector<colour>& data) {
         initialize();
@@ -120,7 +121,11 @@ class camera {
             colour colour_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p);
 
             bool scatter = rec.mat->scatter(r, rec, attenuation, scattered);
-            //if (scattered.dir == vec3()) return attenuation; // Bad workaround to get debug colours directly from scattered
+
+            // Some materials override the camera to return flat colours for some materials (without generating more rays).
+            if (rec.mat->noshade)
+                return attenuation; // This is mostly for debugging normals and such
+    
             // If we don't scatter, ray is absorbed, return the colour from the emission (colour(0,0,0) unless its a light emitting material)
             if (!scatter)
                 return colour_from_emission;
@@ -155,7 +160,7 @@ class camera {
 
         double phi = std::atan2(-hit_normal.z(), hit_normal.x()) + pi;
         double theta = std::acos(-hit_normal.y());
-        return background->value(phi / (2*pi), theta / pi, unit_dir);
+        return background_brightness * background->value(phi / (2*pi), theta / pi, unit_dir);
     }
 
     ray get_ray(int i, int j) const {
