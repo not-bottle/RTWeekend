@@ -3,6 +3,7 @@
 
 #include "rtweekend.h"
 
+#include "arperture.h"
 #include "colour.h"
 #include "hittable.h"
 #include "material.h"
@@ -26,9 +27,12 @@ class camera {
 
     double defocus_angle = 0; // Variation angle of rays originating from disk
     //                           (Think of it like a cone) 
-    double focus_dist = 10; // Distance from lookfrom point to plane (of perfect focus)
+    double focus_dist = 1.0; // Distance from lookfrom point to plane (of perfect focus)
+    double focal_length = 10.0;
     std::shared_ptr<texture> background = std::make_shared<sky_gradient>();
     double background_brightness = 1.0;
+
+    std::shared_ptr<arperture> arp; // Optionally define arpeture using a 1-bit png
 
     void render(const hittable& world, std::vector<colour>& data) {
         initialize();
@@ -82,7 +86,7 @@ class camera {
         pixel_delta_v = viewport_v / image_height;
 
         // Find the upper left corner of the viewport
-        auto viewport_upper_left = centre - (focus_dist * w) - viewport_u/2 - viewport_v/2;
+        auto viewport_upper_left = centre - (focus_dist * -w) - viewport_u/2 - viewport_v/2;
         // Find the centre of the upper left pixel
         pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
@@ -100,7 +104,6 @@ class camera {
     vec3 u, v, w; // Camera basis vectors (orthonormal)
     vec3 defocus_disk_u; // Defocus disk horizontal radius
     vec3 defocus_disk_v; // Defocus disk vertical radius
-
 
     colour ray_colour(const ray& r, int depth, const hittable& world) const
     {
@@ -145,7 +148,6 @@ class camera {
         auto a = r.direction().length_squared();
         auto half_b = dot(r.direction(), oc);
         auto c = oc.length_squared() - skysphere_radius*skysphere_radius;
-
         auto discriminant = half_b*half_b - a*c;
         if (discriminant < 0) return vec3(0, 1, 1);
         auto sqrtd = sqrt(discriminant);
@@ -170,17 +172,27 @@ class camera {
         auto pixel_sample = pixel_centre + pixel_sample_square();
 
         auto ray_origin = (defocus_angle <= 0) ? centre : defocus_disk_sample();
-        auto ray_direction = pixel_sample - ray_origin;
+        // Lens equations
+        auto ray_direction = ray_origin - pixel_centre;
+        auto arpl = std::sqrt(ray_direction.x()*ray_direction.x() + ray_direction.y()*ray_direction.y());
+        auto arpd = (ray_origin - centre).length();
+
+        float fact = 1.0 + ((ray_direction.z()/arpl) * (arpd/focal_length));
+        vec3 arpv = vec3(ray_direction.x()*fact, ray_direction.y()*fact, ray_direction.z());
 
         auto ray_time = random_double();
 
-        return ray(ray_origin, ray_direction, ray_time);
+        return ray(ray_origin, arpv, ray_time);
     }
 
     point3 defocus_disk_sample() const {
         // Return a random point in the camera defocus disk
-        auto p = random_in_unit_disk();
-        return centre + (p[0] * defocus_disk_u) + (p[1] * defocus_disk_v);
+        if (!arp) {
+            auto p = random_in_unit_disk();
+            return centre + (p[0] * defocus_disk_u) + (p[1] * defocus_disk_v);
+        } else {
+            return arp->sample(centre, defocus_disk_u, defocus_disk_v);
+        }
     }
 
     vec3 pixel_sample_square() const {

@@ -19,6 +19,7 @@ void load_final_scene_motion_blur(hittable_list& world, camera& cam);
 void load_checkered_spheres(hittable_list& world, camera& cam);
 void load_earth(hittable_list& world, camera& cam);
 void load_suzanne_scene(hittable_list& world, camera& cam);
+void load_suzanne_normal(hittable_list& world, camera& cam);
 void load_teapot(hittable_list& world, camera& cam);
 void load_perlin_spheres(hittable_list& world, camera& cam);
 void load_quads(hittable_list& world, camera& cam);
@@ -33,8 +34,16 @@ int main() {
     hittable_list world;
     camera cam;
 
-    load_teapot(world, cam);
+    load_final_scene(world, cam);
 
+    cam.image_width = 400;
+    cam.samples_per_pixel = 128;
+    cam.defocus_angle = 0.6;
+    cam.focus_dist = 1.0;
+    cam.focal_length = 10.0/11.0;
+
+    //cam.arp = std::make_shared<arperture>(std::make_shared<rtw_image>("diskbmp.png"));
+    world = hittable_list(std::make_shared<bvh_node>(world));
     render r{THREAD_COUNT};
     auto render_start_time = std::chrono::steady_clock::now();
     r.create_image(std::cout, cam, world);
@@ -138,7 +147,7 @@ void load_final_scene_motion_blur(hittable_list& world, camera& cam)
     cam.focus_dist    = 10.0;
 
     auto ground_material = std::make_shared<checker_texture>(0.32, colour(.2, .3, .1), colour(.9, .9, .9));
-    world.add(std::make_shared<sphere>(point3(0,-1000,0), 1000, std::make_shared<metal>(colour(0.3, 0.3, 0.6), 0.0)));
+    world.add(std::make_shared<sphere>(point3(0,-1000,0), 1000, std::make_shared<lambertian>(ground_material)));
 
     for (int a = -11; a < 11; a++) {
         for (int b = -11; b < 11; b++) {
@@ -201,7 +210,7 @@ void load_checkered_spheres(hittable_list& world, camera& cam) {
 }
 
 void load_earth(hittable_list& world, camera& cam) {
-    auto earth_texture = std::make_shared<image_texture>("earthmap.jpg");
+    auto earth_texture = std::make_shared<image_texture>("test.bmp");
     auto earth_surface = std::make_shared<lambertian>(earth_texture);
     world.add(std::make_shared<sphere>(point3(0,0,0), 2, earth_surface));
 
@@ -334,16 +343,26 @@ void load_simple_light(hittable_list& world, camera& cam) {
     world.add(std::make_shared<sphere>(point3(0,-1001,0), 1000, std::make_shared<lambertian>(pertext)));
     //world.add(std::make_shared<sphere>(point3(0,2,0), 2, std::make_shared<lambertian>(pertext)));
 
-    Model model = Model("./test_objects/suzanne.obj");
-    mesh_to_hittables(model, world, std::make_shared<dielectric>(1.5), vec3(0.0, 0.0, 0.0));
-    world = hittable_list(std::make_shared<bvh_node>(world));
+    //Model model = Model("./test_objects/suzanne.obj");
+    //mesh_to_hittables(model, world, std::make_shared<dielectric>(1.5), vec3(0.0, 0.0, 0.0));
+    //world = hittable_list(std::make_shared<bvh_node>(world));
+
+    world.add(std::make_shared<sphere>(point3(0, 0, 0), 1.0, std::make_shared<dielectric>(1.5)));
 
     // Note that light value is set "brighter" than colour(1, 1, 1). This allows it to light things brightly.
     // (Recall that calculations are made using attenuation * colour from scatter + emission, so multiplying by 1 won't do much)
-    auto difflight1 = std::make_shared<diffuse_light>(colour(10,10,10));
+    auto difflight1 = std::make_shared<diffuse_light>(colour(7,7,7));
     auto difflight2 = std::make_shared<diffuse_light>(colour(0.3,0.5,10));
-    world.add(std::make_shared<sphere>(point3(0,1.85,0), 0.75, difflight1));
-    world.add(std::make_shared<quad>(point3(1.0,.5,-1), vec3(1.5,0,0), vec3(0,1.5,0), difflight2));
+    world.add(std::make_shared<sphere>(point3(0,4.0,0), 2.0, difflight1));
+    //world.add(std::make_shared<quad>(point3(1.0,.5,-1), vec3(1.5,0,0), vec3(0,1.5,0), difflight2));
+    for (int i = -40; i < 40; i += 4)
+    {
+        for (int j = 0; j < 40; j += 5)
+        {
+            auto c = std::make_shared<diffuse_light>(colour::random() * colour::random());
+            world.add(std::make_shared<sphere>(point3(i+random_double()*8.0,j+random_double()*8.0,-80.0), 0.5, c));
+        }
+    }
 
     cam.aspect_ratio      = 16.0 / 9.0;
     cam.image_width       = 800;
