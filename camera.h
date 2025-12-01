@@ -32,10 +32,13 @@ class camera {
     std::shared_ptr<texture> background = std::make_shared<sky_gradient>();
     double background_brightness = 1.0;
 
+    double defocus_radius = 1.0;
+
     std::shared_ptr<arperture> arp; // Optionally define arpeture using a 1-bit png
 
-    void render(const hittable& world, std::vector<colour>& data) {
+    void render(const hittable& world, std::vector<colour>& data, int& scanlines) {
         initialize();
+        scanlines = image_height;
 
         for (int j = 0; j < image_height; ++j) {
 
@@ -44,12 +47,14 @@ class camera {
             for (int i = 0; i < image_width; ++i) {
                 colour pixel_colour(0, 0, 0);
                 for (int sample = 0; sample < samples_per_pixel; ++sample) {
-                    ray r = get_ray(i, j);
+                    ray r = get_ray(image_width-i, image_height-j);
                     pixel_colour += ray_colour(r, max_depth, world);
                 }
                 data.push_back(pixel_colour);
             }
+            scanlines -= 1;
         }
+        scanlines = 0; // Ensure this condition is met for thread polling
         //std::cerr << "Thread " << std::this_thread::get_id() << ": " << "\nDone.\n";
     }
 
@@ -91,7 +96,7 @@ class camera {
         pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
         // Calculate the camera defocus disk basis vectors
-        auto defocus_radius = focus_dist * tan(degrees_to_radians(defocus_angle / 2));
+        //auto defocus_radius = focus_dist2 * tan(degrees_to_radians(defocus_angle / 2));
         defocus_disk_u = u * defocus_radius;
         defocus_disk_v = v * defocus_radius;
     }
@@ -171,18 +176,39 @@ class camera {
         auto pixel_centre = pixel00_loc + (i*pixel_delta_u) + (j*pixel_delta_v);
         auto pixel_sample = pixel_centre + pixel_sample_square();
 
-        auto ray_origin = (defocus_angle <= 0) ? centre : defocus_disk_sample();
+        auto ray_origin = (defocus_radius <= 0) ? centre : defocus_disk_sample();
         // Lens equations
-        auto ray_direction = ray_origin - pixel_centre;
-        auto arpl = std::sqrt(ray_direction.x()*ray_direction.x() + ray_direction.y()*ray_direction.y());
-        auto arpd = (ray_origin - centre).length();
+        auto ray_direction = ray_origin - pixel_sample;
 
-        float fact = 1.0 + ((ray_direction.z()/arpl) * (arpd/focal_length));
-        vec3 arpv = vec3(ray_direction.x()*fact, ray_direction.y()*fact, ray_direction.z());
+        //auto arpl = std::sqrt(ray_direction.x()*ray_direction.x() + ray_direction.y()*ray_direction.y());
+        //auto arpd = (ray_origin - centre).length();
+        //float fact = 1.0 + ((ray_direction.z()/arpl) * (arpd/focal_length));
+        //vec3 arpv = vec3(ray_direction.x()*fact, ray_direction.y()*fact, ray_direction.z());
+
+        point3 lens_centre = centre;
+        auto d = focal_length*focus_dist/(focus_dist - focal_length);
+        auto focus_plane_centre = lens_centre + d*-w;
+        auto focus_plane_normal = w;
+        ray centre_ray = ray(pixel_sample, unit_vector(lens_centre - pixel_sample));
+        auto denom = dot(centre_ray.direction(), focus_plane_normal);
+        auto podotn = dot(focus_plane_centre, focus_plane_normal);
+        auto lodotn = dot(centre_ray.origin(), focus_plane_normal);
+        auto centre_ray_intersection = (podotn - lodotn)/denom;
+        point3 focus_point = centre_ray.at(centre_ray_intersection);
+        //std::cerr << "d: " << d << std::endl;
+        // std::cerr << "----------------------\n" << pixel_sample.z() << std::endl;
+        // std::cerr << lens_centre.z() << std::endl;
+        // //std::cerr << centre_ray.orig << std::endl;
+        // //std::cerr << centre_ray_intersection << std::endl;
+        // //std::cerr << w << std::endl;
+
+        // std::cerr << focus_plane_centre.z() << std::endl;
+        // //std::cerr << focus_plane_normal << std::endl;
+        // std::cerr << focus_point.z() << std::endl;
 
         auto ray_time = random_double();
 
-        return ray(ray_origin, arpv, ray_time);
+        return ray(ray_origin, unit_vector(focus_point - ray_origin), ray_time);
     }
 
     point3 defocus_disk_sample() const {

@@ -72,6 +72,8 @@ class sky_gradient : public texture {
 
 class image_texture : public texture {
     public:
+        image_texture(const char* filename, double scale) : image(std::make_shared<rtw_image>(filename)), 
+            width_scale(scale), height_scale(scale) {}
         image_texture(const char* filename) : image(std::make_shared<rtw_image>(filename)) {}
         image_texture(std::shared_ptr<rtw_image> image) : image(image) {}
 
@@ -83,8 +85,12 @@ class image_texture : public texture {
             u = interval(0,1).clamp(u);
             v = 1.0 - interval(0,1).clamp(v); // Flip V to image coordinates
 
-            auto i = int(u * image->width());
-            auto j = int(v * image->height());
+            u = u * width_scale;
+            v = v * height_scale;
+            double intpart = 0.0;
+
+            auto i = int(std::modf(u, &intpart) * image->width());
+            auto j = int(std::modf(v, &intpart) * image->height());
             auto pixel = image->pixel_data(i,j);
 
             auto colour_scale = 1.0 / 255.0;
@@ -93,6 +99,8 @@ class image_texture : public texture {
     
     private:
         std::shared_ptr<rtw_image> image;
+        double width_scale = 1.0;
+        double height_scale = 1.0;
 };
 
 class noise_texture : public texture {

@@ -2,7 +2,7 @@ CXX = g++
 
 FILE = main
 LIBRARIES = -pthread
-LINK = -l:libassimp.so.6
+LINK = -l:libassimp.so.6 -lncurses
 LINKDIR = ./src
 
 CPLUS_INCLUDE_PATH = ./include
