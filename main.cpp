@@ -55,15 +55,15 @@ int main() {
 
     load_water_scene(world, cam);
 
-    cam.image_width = 400;
-    cam.samples_per_pixel = 64;
+    cam.image_width = 1200;
+    cam.samples_per_pixel = 2048;
     cam.focus_dist = 2.0;
-    cam.defocus_radius = 0.06;
+    cam.defocus_radius = 0.03;
     auto object_dist = 10.0;
 
     cam.focal_length = (cam.focus_dist * object_dist)/(cam.focus_dist + object_dist);
 
-    cam.arp = std::make_shared<arperture>(std::make_shared<rtw_image>("smilearp.png"));
+    cam.arp = std::make_shared<arperture>(std::make_shared<rtw_image>("swipe.png"));
     world = hittable_list(std::make_shared<bvh_node>(world));
     render r{THREAD_COUNT};
     auto render_start_time = std::chrono::steady_clock::now();
@@ -168,13 +168,13 @@ void load_water_scene(hittable_list& world, camera& cam)
     cam.lookat   = point3(0,0,0);
     cam.vup      = vec3(0,1,0);
 
-    auto ground_material = std::make_shared<image_texture>("sand_03_diff_4k.jpg", 800.0);
-    world.add(std::make_shared<sphere>(point3(0,-1000,0), 1000, std::make_shared<lambertian>(ground_material)));
+    //auto ground_material = std::make_shared<image_texture>("sand_03_diff_4k.jpg", 700.0);
+    world.add(std::make_shared<sphere>(point3(0,-1000,0), 1000, std::make_shared<dielectric>(1.333/1.0)));
 
-    for (int a = -11; a < 11; a++) {
-        for (int b = -11; b < 11; b++) {
+    for (int a = -22; a < 22; a++) {
+        for (int b = -22; b < 22; b++) {
             auto choose_mat = random_double();
-            point3 center(a + 0.9*random_double(), 0.2 + 1.6 * random_double(), b + 0.9*random_double());
+            point3 center(a + 0.9*random_double(), 0.2 + 2.0 * random_double(), b + 0.9*random_double());
 
             if ((center - point3(4, 0.2, 0)).length() > 0.9 && (center - point3(13, 2, 3)).length() > 3.0) {
                 std::shared_ptr<material> sphere_material;
@@ -184,7 +184,7 @@ void load_water_scene(hittable_list& world, camera& cam)
                     auto albedo = colour::random() * colour::random();
                     sphere_material = std::make_shared<lambertian>(albedo);
                     world.add(std::make_shared<sphere>(center, 0.2, sphere_material));
-                } else if (choose_mat < 0.1) {
+                } else if (choose_mat < 0.03) {
                     // light
                     center = center - point3(0, 0.5, 0);
                     //auto dir = cam.lookat - cam.lookfrom;
@@ -193,30 +193,32 @@ void load_water_scene(hittable_list& world, camera& cam)
                     auto rscale =  1.5 * (random_double() - 0.5);
                     auto gscale = 1.5 * (random_double() - 0.5);
                     sphere_material = std::make_shared<diffuse_light>(colour((.9 + rscale)*brightness_scale, (.8 + rscale)*brightness_scale, .6));
-                    world.add(std::make_shared<sphere>(center, 0.2 + (random_double()-0.5)*0.25, sphere_material));
+                    world.add(std::make_shared<sphere>(center, 0.15 + (random_double()-0.5)*0.35, sphere_material));
                 } else {
                     // glass
-                    sphere_material = std::make_shared<dielectric>(1.00/1.333); // Air bubble ratio
-                    world.add(std::make_shared<sphere>(center, 0.2 - (random_double())*0.35, sphere_material));
+                    // sphere_material = std::make_shared<dielectric>(1.00/1.333); // Air bubble ratio
+                    sphere_material = std::make_shared<dielectric>(1.333/1.0); // Water droplet ratio
+                    world.add(std::make_shared<sphere>(center, 0.15 - (random_double())*0.35, sphere_material));
                 }
             }
         }
     }
 
+    //auto material1 = std::make_shared<dielectric>(1.5/1.333);
     auto material1 = std::make_shared<dielectric>(1.5/1.333);
     world.add(std::make_shared<sphere>(point3(0, 1, 0), 1.0, material1));
 
-    auto material2 = std::make_shared<lambertian>(colour(0.7, 0.2, 0.5));
+    auto material2 = std::make_shared<lambertian>(colour(0.8, 0.5, 0.4));
     world.add(std::make_shared<sphere>(point3(-4, 1, 0), 1.0, material2));
 
-    auto material3 = std::make_shared<metal>(colour(0.8, 0.5, 0.1), 0.0);
+    auto material3 = std::make_shared<metal>(colour(0.8, 0.5, 0.4), 0.0);
     world.add(std::make_shared<sphere>(point3(4, 1, 0), 1.0, material3));
 
     auto boundary = std::make_shared<sphere>(point3(0,0,0), 20, std::make_shared<dielectric>(1.5));
     world.add(std::make_shared<constant_medium>(boundary, .00075, colour (.9,.8,.7)));
 
-    cam.background = std::make_shared<image_texture>("underwater.png"); 
-    cam.background_brightness = 1.0;
+    cam.background = std::make_shared<image_texture>("kloofendal_48d_partly_cloudy_puresky_4k.png"); 
+    cam.background_brightness = 1.5;
 }
 
 void load_final_scene_motion_blur(hittable_list& world, camera& cam)
