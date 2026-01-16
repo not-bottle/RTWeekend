@@ -55,8 +55,8 @@ int main() {
 
     load_water_scene(world, cam);
 
-    cam.image_width = 1200;
-    cam.samples_per_pixel = 2048;
+    cam.image_width = 480;
+    cam.samples_per_pixel = 128;
     cam.focus_dist = 2.0;
     cam.defocus_radius = 0.03;
     auto object_dist = 10.0;
