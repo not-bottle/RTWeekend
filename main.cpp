@@ -31,7 +31,7 @@ void load_cornell_smoke(hittable_list& world, camera& cam);
 void load_final_scene2(hittable_list& world, camera& cam, int image_width, int samples_per_pixel, int max_depth);
 void load_water_scene(hittable_list& world, camera& cam);
 
-const int THREAD_COUNT = 10;
+const int THREAD_COUNT = 1;
 
 std::string fname = "test.ppm";
 
@@ -55,8 +55,8 @@ int main() {
 
     load_water_scene(world, cam);
 
-    cam.image_width = 480;
-    cam.samples_per_pixel = 128;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 32;
     cam.focus_dist = 2.0;
     cam.defocus_radius = 0.03;
     auto object_dist = 10.0;
