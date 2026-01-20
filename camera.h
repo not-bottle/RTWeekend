@@ -26,12 +26,16 @@ class camera {
 
     double defocus_angle = 0; // Variation angle of rays originating from disk
     //                           (Think of it like a cone) 
-    double focus_dist = 10; // Distance from lookfrom point to plane (of perfect focus)
+    double focus_dist = 1.0; // Distance from lookfrom point to plane (of perfect focus)
+    double focal_length = 10.0;
     std::shared_ptr<texture> background = std::make_shared<sky_gradient>();
     double background_brightness = 1.0;
 
-    void render(const hittable& world, std::vector<colour>& data) {
+    double defocus_radius = 1.0;
+
+    void render(const hittable& world, std::vector<colour>& data, int& scanlines) {
         initialize();
+        scanlines = image_height;
 
         for (int j = 0; j < image_height; ++j) {
 
@@ -45,7 +49,9 @@ class camera {
                 }
                 data.push_back(pixel_colour);
             }
+            scanlines -= 1;
         }
+        scanlines = 0; // Ensure this condition is met for thread polling
         //std::cerr << "Thread " << std::this_thread::get_id() << ": " << "\nDone.\n";
     }
 
@@ -71,7 +77,6 @@ class camera {
         w = unit_vector(lookfrom - lookat); // (This will be pointing _opposite_ lookat, as we use -w as the camera direction)
         u = unit_vector(cross(vup, w));
         v = cross(w, u);
-
 
         // Define two vectors that travel along the width (u) and height (v) of the viewport
         auto viewport_u = viewport_width * u;
@@ -100,7 +105,6 @@ class camera {
     vec3 u, v, w; // Camera basis vectors (orthonormal)
     vec3 defocus_disk_u; // Defocus disk horizontal radius
     vec3 defocus_disk_v; // Defocus disk vertical radius
-
 
     colour ray_colour(const ray& r, int depth, const hittable& world) const
     {
@@ -145,7 +149,6 @@ class camera {
         auto a = r.direction().length_squared();
         auto half_b = dot(r.direction(), oc);
         auto c = oc.length_squared() - skysphere_radius*skysphere_radius;
-
         auto discriminant = half_b*half_b - a*c;
         if (discriminant < 0) return vec3(0, 1, 1);
         auto sqrtd = sqrt(discriminant);
