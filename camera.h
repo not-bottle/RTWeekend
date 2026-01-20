@@ -180,6 +180,7 @@ class camera {
         auto pixel_sample = pixel_centre + pixel_sample_square();
 
         auto ray_origin = (defocus_radius <= 0) ? centre : defocus_disk_sample();
+        //
         // Lens equations
         auto ray_direction = ray_origin - pixel_sample;
 
@@ -210,16 +211,6 @@ class camera {
         auto lodotn = dot(centre_ray.origin(), focus_plane_normal);
         auto centre_ray_intersection = (podotn - lodotn)/denom;
         point3 focus_point = centre_ray.at(centre_ray_intersection);
-        //std::cerr << "d: " << d << std::endl;
-        // std::cerr << "----------------------\n" << pixel_sample.z() << std::endl;
-        // std::cerr << lens_centre.z() << std::endl;
-        // //std::cerr << centre_ray.orig << std::endl;
-        // //std::cerr << centre_ray_intersection << std::endl;
-        // //std::cerr << w << std::endl;
-
-        // std::cerr << focus_plane_centre.z() << std::endl;
-        // //std::cerr << focus_plane_normal << std::endl;
-        // std::cerr << focus_point.z() << std::endl;
 
         auto ray_time = random_double();
 
