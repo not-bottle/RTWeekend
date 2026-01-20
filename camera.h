@@ -9,6 +9,9 @@
 #include "material.h"
 #include "texture.h"
 
+#include "augmented_matrix.h"
+#include "matrix.h"
+
 #include <iostream>
 #include <thread>
 
@@ -180,10 +183,22 @@ class camera {
         // Lens equations
         auto ray_direction = ray_origin - pixel_sample;
 
-        //auto arpl = std::sqrt(ray_direction.x()*ray_direction.x() + ray_direction.y()*ray_direction.y());
-        //auto arpd = (ray_origin - centre).length();
-        //float fact = 1.0 + ((ray_direction.z()/arpl) * (arpd/focal_length));
-        //vec3 arpv = vec3(ray_direction.x()*fact, ray_direction.y()*fact, ray_direction.z());
+       // matrix<double, 3, 3> basis_mat {{u[0], u[1], u[2], v[0], v[1], v[2], -w[0], -w[1], -w[2]}};    
+
+       // matrix<double, 3, 3> inv_basis = basis_mat.inverse();
+       // matrix<double, 3, 1> direction_vec{{ray_direction.x(), ray_direction.y(), ray_direction.z()}};
+       // matrix<double, 3, 1> origin_vec{{ray_origin.x(), ray_origin.y(), ray_origin.z()}};
+       // matrix<double, 3, 1> centre_vec{{centre.x(), centre.y(), centre.z()}};
+       // vec3 direction_basis{mmult(inv_basis, direction_vec).transpose()};
+       // vec3 origin_basis{mmult(inv_basis, origin_vec).transpose()};
+       // vec3 centre_basis{mmult(inv_basis, centre_vec).transpose()};
+       // auto arpl = std::sqrt(direction_basis.x()*direction_basis.x() + direction_basis.y()*direction_basis.y());
+       // auto arpd = (origin_basis - centre_basis).length();
+       // double fact = 1.0 + ((direction_basis.z()/arpl) * (arpd/focal_length));
+       // vec3 arpv = vec3(direction_basis.x()*fact, direction_basis.y()*fact, direction_basis.z());
+
+       // matrix<double, 3, 1> arpv_vec {{arpv.x(), arpv.y(), arpv.z()}};
+       // arpv = vec3(mmult(basis_mat, arpv_vec).transpose());
 
         point3 lens_centre = centre;
         auto d = focal_length*focus_dist/(focus_dist - focal_length);

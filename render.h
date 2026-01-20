@@ -86,13 +86,13 @@ class render
                 std::transform(thread_output.begin(), thread_output.end(), image_data.begin(), image_data.begin(), 
                     [](const colour& a, const colour& b){ return a + b; });
             }
-
             // Output the Image
             outstream << "P3\n" << cam.image_width << ' ' << cam.image_height << "\n255\n";
 
             for (colour c : image_data) {
                 write_colour(outstream, c, total_samples);
             }
+            outstream << std::flush;
         }
 
     private:

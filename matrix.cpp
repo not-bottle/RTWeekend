@@ -79,9 +79,7 @@ matrix<T, ROWS, COLS> matrix<T, ROWS, COLS>::inverse() const
     }
     aug.set_bounds(0, ROWS, 0, COLS);
     matrix<T, ROWS, COLS*2> augreduced = aug.rref();
-    std::cout << aug.rref();
     msubmatrix(augreduced, o, 0, 3);
-    std::cout << o;    
     return o;
 }
 

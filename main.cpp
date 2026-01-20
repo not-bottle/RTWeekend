@@ -57,13 +57,13 @@ int main() {
 
     cam.image_width = 400;
     cam.samples_per_pixel = 32;
-    cam.focus_dist = 2.0;
-    cam.defocus_radius = 0.03;
+    cam.focus_dist = 1.0;
+    cam.defocus_radius = 0.001;
     auto object_dist = 10.0;
 
     cam.focal_length = (cam.focus_dist * object_dist)/(cam.focus_dist + object_dist);
 
-    cam.arp = std::make_shared<arperture>(std::make_shared<rtw_image>("swipe.png"));
+    cam.arp = std::make_shared<arperture>(std::make_shared<rtw_image>("diskbmp.png"));
     world = hittable_list(std::make_shared<bvh_node>(world));
     render r{THREAD_COUNT};
     auto render_start_time = std::chrono::steady_clock::now();
