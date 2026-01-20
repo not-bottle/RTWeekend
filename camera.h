@@ -18,6 +18,7 @@ class camera {
     int image_height; // Rendered image height
     int samples_per_pixel = 10; // Count of random samples for each pixel
     int max_depth = 10; // Maximum number of times rays are allowed to bounce
+    int total_stratified_samples = 10;
 
     double vfov = 90; // The vertical view angle (field of view)
     point3 lookfrom = point3(0, 0, -1); // Point camera is looking from
@@ -31,7 +32,7 @@ class camera {
     std::shared_ptr<texture> background = std::make_shared<sky_gradient>();
     double background_brightness = 1.0;
 
-    double defocus_radius = 1.0;
+    double defocus_radius = 1.0; // Note: This doesn't do anything since the original defocus blur is being used
 
     void render(const hittable& world, std::vector<colour>& data, int& scanlines) {
         initialize();
@@ -43,9 +44,11 @@ class camera {
 
             for (int i = 0; i < image_width; ++i) {
                 colour pixel_colour(0, 0, 0);
-                for (int sample = 0; sample < samples_per_pixel; ++sample) {
-                    ray r = get_ray(i, j);
-                    pixel_colour += ray_colour(r, max_depth, world);
+                for (int s_j = 0; s_j < sqrt_spp; s_j++) {
+                    for (int s_i = 0; s_i < sqrt_spp; s_i++) {
+                        ray r = get_ray(i, j, s_i, s_j);
+                        pixel_colour += ray_colour(r, max_depth, world);
+                    }
                 }
                 data.push_back(pixel_colour);
             }
@@ -58,6 +61,10 @@ class camera {
     void initialize() {
         image_height = static_cast<int>(image_width / aspect_ratio);
         image_height = (image_height < 1) ? 1 : image_height; // Ensure height is at least 1
+
+        sqrt_spp = int(std::sqrt(samples_per_pixel));
+        total_stratified_samples = sqrt_spp * sqrt_spp;
+        recip_sqrt_spp = 1.0 / sqrt_spp;
 
         // Camera
 
@@ -98,6 +105,8 @@ class camera {
     }
 
   private:
+    int sqrt_spp; // Square root of number of samples per pixel
+    double recip_sqrt_spp; // 1 / sqrt_spp
     point3 centre; // Camera centre
     point3 pixel00_loc; // Localtion of pixel 0,0
     vec3 pixel_delta_u; // Offset to pixel to the right
@@ -105,7 +114,7 @@ class camera {
     vec3 u, v, w; // Camera basis vectors (orthonormal)
     vec3 defocus_disk_u; // Defocus disk horizontal radius
     vec3 defocus_disk_v; // Defocus disk vertical radius
-
+  
     colour ray_colour(const ray& r, int depth, const hittable& world) const
     {
         hit_record rec;
@@ -166,18 +175,31 @@ class camera {
         return background_brightness * background->value(phi / (2*pi), theta / pi, unit_dir);
     }
 
-    ray get_ray(int i, int j) const {
-        // Get a randomly sampled camera ray for the pixel located at i, j, 
-        // originating from the camera defocus disk
-        auto pixel_centre = pixel00_loc + (i*pixel_delta_u) + (j*pixel_delta_v);
-        auto pixel_sample = pixel_centre + pixel_sample_square();
+    ray get_ray(int i, int j, int s_i, int s_j) const {
+        // Construct a camera ray originating from the defocus disk and directed
+        // at a randomly sampled point around the pixel location i, j for stratified
+        // samplesquare s_i, s_j.
+        auto offset = sample_square_stratified(s_i, s_j);
+        auto pixel_sample = pixel00_loc
+                          + ((i + offset.x()) * pixel_delta_u)
+                          + ((j + offset.y()) * pixel_delta_v);
 
         auto ray_origin = (defocus_angle <= 0) ? centre : defocus_disk_sample();
         auto ray_direction = pixel_sample - ray_origin;
-
         auto ray_time = random_double();
 
         return ray(ray_origin, ray_direction, ray_time);
+    }
+
+    vec3 sample_square_stratified(int s_i, int s_j) const {
+        // Return the vector to a random point in the square sub-pixel
+        // specified by grid indices s_i and s_j, for an idealized
+        // unit square pixel [-.5, -.5] to [+.5, +.5].
+
+        auto px = ((s_i + random_double()) * recip_sqrt_spp) - 0.5;
+        auto py = ((s_j + random_double()) * recip_sqrt_spp) - 0.5;
+
+        return vec3(px, py, 0);
     }
 
     point3 defocus_disk_sample() const {
