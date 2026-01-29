@@ -31,7 +31,7 @@ void load_cornell_smoke(hittable_list& world, camera& cam);
 void load_final_scene2(hittable_list& world, camera& cam, int image_width, int samples_per_pixel, int max_depth);
 void load_water_scene(hittable_list& world, camera& cam);
 
-const int THREAD_COUNT = 10;
+const int THREAD_COUNT = 1;
 
 std::string fname = "test.ppm";
 
@@ -55,6 +55,7 @@ int main() {
 
     load_cornell_box(world, cam);
 
+    cam.samples_per_pixel = 1000;
     world = hittable_list(std::make_shared<bvh_node>(world));
     render r{THREAD_COUNT};
     auto render_start_time = std::chrono::steady_clock::now();
@@ -486,7 +487,7 @@ void load_cornell_box(hittable_list& world, camera& cam) {
 
     cam.aspect_ratio      = 1.0;
     cam.image_width       = 600;
-    cam.samples_per_pixel = 64;
+    cam.samples_per_pixel = 200;
     cam.max_depth         = 50;
     cam.background        = std::make_shared<solid_colour>(colour(0,0,0));
 

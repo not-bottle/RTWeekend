@@ -26,7 +26,7 @@ class render
             cam.initialize();
             int total_samples = cam.total_stratified_samples;
             // Define samples per-thread in the camera object
-            cam.samples_per_pixel = cam.samples_per_pixel / num_threads;
+            cam.samples_per_pixel = total_samples / num_threads;
             int remaining_samples = total_samples - (cam.samples_per_pixel * (num_threads - 1));
 
             std::ostringstream sstream;

@@ -24,6 +24,9 @@ class material {
         virtual bool scatter(
             const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered) const { return false; };
 
+        virtual double scattering_pdf(const ray& r_in, const hit_record& rec, const ray& scattered) 
+            const { return 0; }
+
         bool noshade = false;
 };
 
@@ -45,6 +48,13 @@ class lambertian : public material {
             attenuation = tex->value(rec.u, rec.v, rec.p);
             return true;
         }
+
+        double scattering_pdf(const ray& r_in, const hit_record& rec, const ray& scattered) const override
+        {
+            auto cos_theta = dot(rec.normal, unit_vector(scattered.direction()));
+            return cos_theta < 0 ? 0 : cos_theta/pi;
+        }
+
 
     private:
         std::shared_ptr<texture> tex;
