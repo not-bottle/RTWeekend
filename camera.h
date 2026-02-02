@@ -144,7 +144,7 @@ class camera {
                 return colour_from_emission;
             
             double scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
-            double pdf_value = 1.0 / (2*pi);
+            double pdf_value = scattering_pdf;
             colour colour_from_scatter = (attenuation * scattering_pdf * ray_colour(scattered, depth-1, world)) / pdf_value;
             
             return colour_from_emission + colour_from_scatter;
