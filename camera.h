@@ -131,9 +131,10 @@ class camera {
             
             ray scattered;
             colour attenuation;
+            double pdf_value;
             colour colour_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p);
 
-            bool scatter = rec.mat->scatter(r, rec, attenuation, scattered);
+            bool scatter = rec.mat->scatter(r, rec, attenuation, scattered, pdf_value);
 
             // Some materials override the camera to return flat colours for some materials (without generating more rays).
             if (rec.mat->noshade)
@@ -144,7 +145,7 @@ class camera {
                 return colour_from_emission;
             
             double scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
-            double pdf_value = scattering_pdf;
+            pdf_value = scattering_pdf;
             colour colour_from_scatter = (attenuation * scattering_pdf * ray_colour(scattered, depth-1, world)) / pdf_value;
             
             return colour_from_emission + colour_from_scatter;

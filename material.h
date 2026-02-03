@@ -2,6 +2,7 @@
 #define MATERIAL_H
 
 #include "rtweekend.h"
+#include "onb.h"
 #include "texture.h"
 
 #include <algorithm>
@@ -22,7 +23,8 @@ class material {
               2. If the scattered ray is produced, how is the colour attenuated.
         */
         virtual bool scatter(
-            const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered) const { return false; };
+            const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered, double& pdf) 
+            const { return false; };
 
         virtual double scattering_pdf(const ray& r_in, const hit_record& rec, const ray& scattered) 
             const { return 0; }
@@ -35,17 +37,21 @@ class lambertian : public material {
         lambertian(const colour& albedo) : tex(std::make_shared<solid_colour>(albedo)) {}
         lambertian(std::shared_ptr<texture> tex) : tex(tex) {}
 
-        bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered)
+        bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered, double& pdf)
         const override {
-            auto scatter_direction = random_on_hemisphere(rec.normal);
+            onb uvw{rec.normal};
+            auto scatter_direction = uvw.transform(random_cosine_direction());
 
             // If the randomly generated ray is almost (or exactly) opposite the normal, avoid
             // generating a zero ray (as this will never terminate)
             if (scatter_direction.near_zero())
                 scatter_direction = rec.normal;
 
-            scattered = ray(rec.p, scatter_direction, r_in.time());
+            scattered = ray(rec.p, unit_vector(scatter_direction), r_in.time());
             attenuation = tex->value(rec.u, rec.v, rec.p);
+            // The pdf is still cos(theta)/pi, just that z=cos(theta)
+            // is the projection of w onto the scattered direction.
+            pdf = dot(uvw.w(), scattered.direction()) / pi;
             return true;
         }
 
@@ -64,7 +70,7 @@ class metal : public material {
         metal(std::shared_ptr<texture> tex, double f) : tex(tex), fuzz(f < 1 ? f : 1) {}
         metal(const colour& albedo, double f) : metal(std::make_shared<solid_colour>(albedo), fuzz) {}
 
-        bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered)
+        bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered, double& pdf)
         const override {
             auto reflected = reflect(unit_vector(r_in.direction()), rec.normal);
             scattered = ray(rec.p, reflected + fuzz*random_unit_vector(), r_in.time());
@@ -83,7 +89,7 @@ class dielectric : public material {
     public:
         dielectric(double index_of_refraction) : ir(index_of_refraction) {}
 
-    bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered)
+    bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered, double& pdf)
         const override {
             attenuation = colour(1.0, 1.0, 1.0);
             // Refraction ratio is 1/ir if ray is going from air into material,
@@ -142,13 +148,18 @@ class isotropic : public material {
         isotropic(const colour& albedo) : tex(std::make_shared<solid_colour>(albedo)) {}
         isotropic(std::shared_ptr<texture> tex) : tex(tex) {}
 
-        bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered)
+        bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered, double& pdf)
         const override {
             scattered = ray(rec.p, random_unit_vector(), r_in.time());
             attenuation = tex->value(rec.u, rec.v, rec.p);
+            pdf = 1 / (4 * pi);
             return true;
         }
 
+        double scattering_pdf(const ray& r_in, const hit_record& rec, const ray& scattered)
+        const override {
+            return 1 / (4 * pi);
+        }
     private:
         std::shared_ptr<texture> tex;
 };
@@ -156,7 +167,7 @@ class isotropic : public material {
 class facing_ratio : public material {
     public:
         facing_ratio() { noshade = true; }
-    bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered)
+    bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered, double& pdf)
         const override {
             scattered = ray(rec.p, rec.normal, r_in.time());
             attenuation = colour(std::max(dot(unit_vector(rec.normal), unit_vector(-r_in.dir)), 0.0));
@@ -168,7 +179,7 @@ class shade_normal : public material {
     public:
         shade_normal() { noshade = true; }
 
-    bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered)
+    bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered, double& pdf)
         const override {
             scattered = ray(rec.p, rec.normal, r_in.time());
             attenuation = colour(rec.normal);

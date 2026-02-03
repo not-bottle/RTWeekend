@@ -59,6 +59,24 @@ vec3 random_on_hemisphere(const vec3 &normal)
     }
 }
 
+/* 
+ * Sample a random direction from sphere's hemisphere
+ * relative to z axis using pdf = cos(theta)/pi.
+ * Finding the CDF for the hemisphere using the pdf
+ * gives the coordinate component values.
+ */
+inline vec3 random_cosine_direction() {
+    auto r1 = random_double();
+    auto r2 = random_double();
+
+    auto phi = 2*pi*r1;
+    auto x = std::cos(phi) * std::sqrt(r2);
+    auto y = std::sin(phi) * std::sqrt(r2);
+    auto z = std::sqrt(1-r2);
+
+    return vec3(x, y, z);
+}
+
 // Type Aliases
 using point3 = vec3;
 using colour = vec3;
