@@ -83,8 +83,8 @@ class rotate_y : public hittable {
                 for (int j = 0; j < 2; j++) {
                     for (int k = 0; k < 2; k++) {
                         auto x = i*bbox.x.max + (1-i)*bbox.x.min;
-                        auto y = i*bbox.y.max + (1-i)*bbox.y.min;
-                        auto z = i*bbox.z.max + (1-i)*bbox.z.min;
+                        auto y = j*bbox.y.max + (1-i)*bbox.y.min;
+                        auto z = k*bbox.z.max + (1-i)*bbox.z.min;
 
                         auto newx =  cos_theta*x + sin_theta*z;
                         auto newz = -sin_theta*x + cos_theta*z;
