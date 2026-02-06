@@ -31,7 +31,7 @@ void load_cornell_smoke(hittable_list& world, camera& cam);
 void load_final_scene2(hittable_list& world, camera& cam, int image_width, int samples_per_pixel, int max_depth);
 void load_water_scene(hittable_list& world, camera& cam);
 
-const int THREAD_COUNT = 1;
+const int THREAD_COUNT = 10;
 
 std::string fname = "test.ppm";
 
@@ -56,6 +56,7 @@ int main() {
 
     load_cornell_box(world, lights, cam);
 
+    cam.samples_per_pixel = 1000;
     render r{THREAD_COUNT};
     auto render_start_time = std::chrono::steady_clock::now();
     r.create_image(output_file, cam, world, lights);

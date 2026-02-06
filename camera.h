@@ -145,9 +145,11 @@ class camera {
             if (!scatter)
                 return colour_from_emission;
 
-            hittable_pdf light_pdf(lights, rec.p);
-            scattered = ray(rec.p, light_pdf.generate(), r.time());
-            pdf_value = light_pdf.value(scattered.direction());
+            auto p0 = std::make_shared<hittable_pdf>(lights, rec.p);
+            auto p1 = std::make_shared<cosine_pdf>(rec.normal);
+            mixture_pdf mixed_pdf(p0, p1);
+            scattered = ray(rec.p, mixed_pdf.generate(), r.time());
+            pdf_value = mixed_pdf.value(scattered.direction());
 
             double scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
             colour sample_colour = ray_colour(scattered, depth-1, world, lights);
