@@ -145,12 +145,13 @@ class camera {
             if (!scatter)
                 return colour_from_emission;
 
-            cosine_pdf surface_pdf(rec.normal);
-            scattered = ray(rec.p, surface_pdf.generate(), r.time());
-            pdf_value = surface_pdf.value(scattered.direction());
+            hittable_pdf light_pdf(lights, r.origin());
+            scattered = ray(rec.p, light_pdf.generate(), r.time());
+            pdf_value = light_pdf.value(scattered.direction());
 
             double scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
-            colour colour_from_scatter = (attenuation * scattering_pdf * ray_colour(scattered, depth-1, world, lights)) / pdf_value;
+            colour sample_colour = ray_colour(scattered, depth-1, world, lights);
+            colour colour_from_scatter = (attenuation * scattering_pdf * sample_colour) / pdf_value;
             
             return colour_from_emission + colour_from_scatter;
 

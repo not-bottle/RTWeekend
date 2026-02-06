@@ -486,9 +486,12 @@ void load_cornell_box(hittable_list& world, hittable_list& lights, camera& cam) 
     box2 = std::make_shared<translate>(box2, vec3(130,0,65));
     world.add(box2);
 
+    auto empty_material = std::shared_ptr<material>();
+    lights.add(std::make_shared<quad>(point3(343,554,332), vec3(-130,0,0), vec3(0,0,-105), empty_material));
+
     cam.aspect_ratio      = 1.0;
     cam.image_width       = 600;
-    cam.samples_per_pixel = 200;
+    cam.samples_per_pixel = 10;
     cam.max_depth         = 50;
     cam.background        = std::make_shared<solid_colour>(colour(0,0,0));
 
