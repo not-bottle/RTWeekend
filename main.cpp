@@ -56,7 +56,6 @@ int main() {
 
     load_cornell_box(world, lights, cam);
 
-    cam.samples_per_pixel = 10;
     render r{THREAD_COUNT};
     auto render_start_time = std::chrono::steady_clock::now();
     r.create_image(output_file, cam, world, lights);
