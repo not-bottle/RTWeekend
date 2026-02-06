@@ -22,7 +22,7 @@ class render
             if (num_threads <= 0) num_threads = 1;
         }
 
-        void create_image(std::ostream& outstream, camera cam, hittable_list& hittables) {
+        void create_image(std::ostream& outstream, camera cam, hittable_list& hittables, hittable_list& lights) {
             cam.initialize();
             int total_samples = cam.total_stratified_samples;
             // Define samples per-thread in the camera object
@@ -45,7 +45,7 @@ class render
             for (int i = 0; i < num_threads - 1; i++)
             {
                 toutput[i] = std::vector<colour>();
-                threads[i] = std::thread(&render::render_thread, this, std::ref(cam), std::ref(hittables), std::ref(toutput[i]), std::ref(tscanlines[i]));
+                threads[i] = std::thread(&render::render_thread, this, std::ref(cam), std::ref(hittables), std::ref(lights), std::ref(toutput[i]), std::ref(tscanlines[i]));
                 sstream << "Created new render thread " << threads[i].get_id() << " for " << cam.samples_per_pixel << " samples." << std::endl;
                 addstr(sstream.str().c_str());
                 sstream.str("");
@@ -58,7 +58,7 @@ class render
             // Render the rest of the samples
             cam.samples_per_pixel = remaining_samples;
             threads[num_threads - 1] = std::thread(&render::render_thread, this, std::ref(cam), 
-                std::ref(hittables), std::ref(image_data), std::ref(tscanlines[num_threads - 1]));
+                std::ref(hittables), std::ref(lights), std::ref(image_data), std::ref(tscanlines[num_threads - 1]));
             sstream << "Created final render thread " << threads[num_threads - 1].get_id() << " for " << cam.samples_per_pixel << " samples." << std::endl;
             addstr(sstream.str().c_str());
             sstream.str("");
@@ -98,8 +98,8 @@ class render
     private:
         int num_threads;
 
-        void render_thread(camera cam, hittable_list& hittables, std::vector<colour>& pixel_data, int& scanlines) {
-            cam.render(hittables, pixel_data, scanlines);
+        void render_thread(camera cam, hittable_list& hittables, hittable_list& lights, std::vector<colour>& pixel_data, int& scanlines) {
+            cam.render(hittables, lights, pixel_data, scanlines);
         }
 
         bool scanpoll(int starty, int startx, std::vector<int> tscanlines) {

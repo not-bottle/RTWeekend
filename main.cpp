@@ -26,7 +26,7 @@ void load_teapot(hittable_list& world, camera& cam);
 void load_perlin_spheres(hittable_list& world, camera& cam);
 void load_quads(hittable_list& world, camera& cam);
 void load_simple_light(hittable_list& world, camera& cam);
-void load_cornell_box(hittable_list& world, camera& cam);
+void load_cornell_box(hittable_list& world, hittable_list& lights, camera& cam);
 void load_cornell_smoke(hittable_list& world, camera& cam);
 void load_final_scene2(hittable_list& world, camera& cam, int image_width, int samples_per_pixel, int max_depth);
 void load_water_scene(hittable_list& world, camera& cam);
@@ -51,15 +51,16 @@ int main() {
     clear();
 
     hittable_list world;
+    hittable_list lights;
     camera cam;
 
-    load_cornell_box(world, cam);
+    load_cornell_box(world, lights, cam);
 
     cam.samples_per_pixel = 1000;
     world = hittable_list(std::make_shared<bvh_node>(world));
     render r{THREAD_COUNT};
     auto render_start_time = std::chrono::steady_clock::now();
-    r.create_image(output_file, cam, world);
+    r.create_image(output_file, cam, world, lights);
     auto render_finish_time = std::chrono::steady_clock::now();
     auto render_duration = std::chrono::duration_cast<std::chrono::milliseconds>(render_finish_time - render_start_time).count();
     endwin();
@@ -462,7 +463,7 @@ void load_simple_light(hittable_list& world, camera& cam) {
     cam.defocus_angle = 0;
 }
 
-void load_cornell_box(hittable_list& world, camera& cam) {
+void load_cornell_box(hittable_list& world, hittable_list& lights, camera& cam) {
     auto red   = std::make_shared<lambertian>(colour(.65, .05, .05));
     auto white = std::make_shared<lambertian>(colour(.73, .73, .73));
     auto green = std::make_shared<lambertian>(colour(.12, .45, .15));

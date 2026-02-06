@@ -35,7 +35,7 @@ class camera {
 
     double defocus_radius = 1.0; // Note: This doesn't do anything since the original defocus blur is being used
 
-    void render(const hittable& world, std::vector<colour>& data, int& scanlines) {
+    void render(const hittable& world, const hittable& lights, std::vector<colour>& data, int& scanlines) {
         initialize();
         scanlines = image_height;
 
@@ -48,7 +48,7 @@ class camera {
                 for (int s_j = 0; s_j < sqrt_spp; s_j++) {
                     for (int s_i = 0; s_i < sqrt_spp; s_i++) {
                         ray r = get_ray(i, j, s_i, s_j);
-                        pixel_colour += ray_colour(r, max_depth, world);
+                        pixel_colour += ray_colour(r, max_depth, world, lights);
                     }
                 }
                 data.push_back(pixel_colour);
@@ -116,7 +116,7 @@ class camera {
     vec3 defocus_disk_u; // Defocus disk horizontal radius
     vec3 defocus_disk_v; // Defocus disk vertical radius
   
-    colour ray_colour(const ray& r, int depth, const hittable& world) const
+    colour ray_colour(const ray& r, int depth, const hittable& world, const hittable& lights) const
     {
         hit_record rec;
         
@@ -150,7 +150,7 @@ class camera {
             pdf_value = surface_pdf.value(scattered.direction());
 
             double scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
-            colour colour_from_scatter = (attenuation * scattering_pdf * ray_colour(scattered, depth-1, world)) / pdf_value;
+            colour colour_from_scatter = (attenuation * scattering_pdf * ray_colour(scattered, depth-1, world, lights)) / pdf_value;
             
             return colour_from_emission + colour_from_scatter;
 
