@@ -145,7 +145,7 @@ class camera {
             if (!scatter)
                 return colour_from_emission;
 
-            hittable_pdf light_pdf(lights, r.origin());
+            hittable_pdf light_pdf(lights, rec.p);
             scattered = ray(rec.p, light_pdf.generate(), r.time());
             pdf_value = light_pdf.value(scattered.direction());
 
