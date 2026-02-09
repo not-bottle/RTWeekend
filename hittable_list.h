@@ -37,21 +37,22 @@ class hittable_list : public hittable {
             return hit_anything;
         }
 
-        double pdf_value(const point3& origin, const vec3& direction) const override
-        {
-            if (objects.empty()) return 0.0;
-
-            return objects.front()->pdf_value(origin, direction);
-        }
-
-        vec3 random(const point3& origin) const override
-        {
-            if (objects.empty()) return vec3(1,0,0);
-
-            return objects.front()->random(origin);
-        }
-
         aabb bounding_box() const override { return bbox; }
+
+        double pdf_value(const point3& origin, const vec3& direction) const override {
+            auto weight = 1.0 / objects.size();
+            auto sum = 0.0;
+
+            for (const auto& object : objects)
+                sum += weight * object->pdf_value(origin, direction);
+
+            return sum;
+        }
+
+        vec3 random(const point3& origin) const override {
+            auto int_size = int(objects.size());
+            return objects[random_int(0, int_size-1)]->random(origin);
+        }
 
     private:
         aabb bbox;

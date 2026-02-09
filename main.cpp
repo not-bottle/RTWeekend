@@ -71,7 +71,7 @@ int main() {
 
 void load_suzanne_normal(hittable_list& world, camera& cam) 
 {
-    auto material_normal = std::make_shared<shade_normal>();
+    auto material_normal = std::make_shared<isotropic>(colour(0.0, 1.0, 0.0));
     Model model = Model("./test_objects/suzanne.obj");
     mesh_to_hittables(model, world, material_normal, vec3(0.0, 0.0, 0.0));
     world = hittable_list(std::make_shared<bvh_node>(world));
@@ -475,18 +475,26 @@ void load_cornell_box(hittable_list& world, hittable_list& lights, camera& cam) 
     world.add(std::make_shared<quad>(point3(555,555,555), vec3(-555,0,0), vec3(0,0,-555), white));
     world.add(std::make_shared<quad>(point3(0,0,555), vec3(555,0,0), vec3(0,555,0), white));
 
+    //std::shared_ptr<material> aluminium = std::make_shared<metal>(colour(0.8, 0.85, 0.88), 0.0);
     std::shared_ptr<hittable> box1 = box(point3(0,0,0), point3(165,330,165), white);
     box1 = std::make_shared<rotate_y>(box1, 15);
     box1 = std::make_shared<translate>(box1, vec3(265,0,295));
     world.add(box1);
 
-    std::shared_ptr<hittable> box2 = box(point3(0,0,0), point3(165,165,165), white);
-    box2 = std::make_shared<rotate_y>(box2, -18);
-    box2 = std::make_shared<translate>(box2, vec3(130,0,65));
-    world.add(box2);
+    //std::shared_ptr<hittable> box2 = box(point3(0,0,0), point3(165,165,165), white);
+    //box2 = std::make_shared<rotate_y>(box2, -18);
+    //box2 = std::make_shared<translate>(box2, vec3(130,0,65));
+    //world.add(box2);
 
+    // Glass Sphere
+
+    auto glass = std::make_shared<dielectric>(1.5);
+    world.add(std::make_shared<sphere>(point3(190, 90, 190), 90, glass));
+
+    // Light Sources
     auto empty_material = std::shared_ptr<material>();
     lights.add(std::make_shared<quad>(point3(343,554,332), vec3(-130,0,0), vec3(0,0,-105), empty_material));
+    lights.add(std::make_shared<sphere>(point3(190, 90, 190), 90, empty_material));
 
     cam.aspect_ratio      = 1.0;
     cam.image_width       = 600;

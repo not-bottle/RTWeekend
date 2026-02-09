@@ -26,6 +26,11 @@ void write_colour(std::ostream &out, colour pixel_colour, int samples_per_pixel)
     g *= scale;
     b *= scale;
 
+    // Replace NaN components with zero.
+    if (r != r) r = 0.0;
+    if (g != g) g = 0.0;
+    if (b != b) b = 0.0;
+
     // Apply the linear to gamma transform
     r = linear_to_gamma(r);
     g = linear_to_gamma(g);

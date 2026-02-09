@@ -130,33 +130,34 @@ class camera {
             // the object. This leads to "shadow acne" - darker spots that occur due to rays hitting an object
             // multiple times from within the surface.
             
-            ray scattered;
-            colour attenuation;
-            double pdf_value;
+            scatter_record srec;
             colour colour_from_emission = rec.mat->emitted(r, rec, rec.u, rec.v, rec.p);
 
-            bool scatter = rec.mat->scatter(r, rec, attenuation, scattered, pdf_value);
+            bool scatter = rec.mat->scatter(r, rec, srec);
 
             // Some materials override the camera to return flat colours for some materials (without generating more rays).
             if (rec.mat->noshade)
-                return attenuation; // This is mostly for debugging normals and such
+                return srec.attenuation; // This is mostly for debugging normals and such
     
             // If we don't scatter, ray is absorbed, return the colour from the emission (colour(0,0,0) unless its a light emitting material)
             if (!scatter)
                 return colour_from_emission;
 
-            auto p0 = std::make_shared<hittable_pdf>(lights, rec.p);
-            auto p1 = std::make_shared<cosine_pdf>(rec.normal);
-            mixture_pdf mixed_pdf(p0, p1);
-            scattered = ray(rec.p, mixed_pdf.generate(), r.time());
-            pdf_value = mixed_pdf.value(scattered.direction());
+            if (srec.skip_pdf) {
+                return srec.attenuation * ray_colour(srec.skip_pdf_ray, depth-1, world, lights);
+            }
+
+            auto light_ptr = std::make_shared<hittable_pdf>(lights, rec.p);
+            mixture_pdf p(light_ptr, srec.pdf_ptr);
+
+            ray scattered = ray(rec.p, p.generate(), r.time());
+            auto pdf_value = p.value(scattered.direction());
 
             double scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
             colour sample_colour = ray_colour(scattered, depth-1, world, lights);
-            colour colour_from_scatter = (attenuation * scattering_pdf * sample_colour) / pdf_value;
+            colour colour_from_scatter = (srec.attenuation * scattering_pdf * sample_colour) / pdf_value;
             
             return colour_from_emission + colour_from_scatter;
-
         }
     
         // If ray hits nothing return background colour (using a skysphere texture)
