@@ -27,21 +27,33 @@ void load_water_scene(hittable_list& world, camera& cam);
 
 void load_suzanne_normal(hittable_list& world, camera& cam) 
 {
-    auto material_normal = std::make_shared<isotropic>(colour(0.0, 1.0, 0.0));
-    Model model = Model("./test_objects/suzanne.obj");
-    mesh_to_hittables(model, world, material_normal, vec3(0.0, 0.0, 0.0));
-    world = hittable_list(std::make_shared<bvh_node>(world));
+    //auto material_normal = std::make_shared<isotropic>(colour(0.0, 1.0, 0.0));
+    //Model model = Model("./test_objects/suzanne.obj");
+    //mesh_to_hittables(model, world, material_normal, vec3(0.0, 0.0, 0.0));
+    //world = hittable_list(std::make_shared<bvh_node>(world));
 
-    std::cerr << "World Size: " << world.objects.size() << std::endl;
+    //std::cerr << "World Size: " << world.objects.size() << std::endl;
+
+    Model model { "test_objects/oguri/scene.gltf" };
+
+    std::shared_ptr<hittable_list> model_list = std::make_shared<hittable_list>(); 
+    mesh_to_hittables(model, *model_list, nullptr, vec3(0.0, 0.0, 0.0));
+    std::shared_ptr<scale> model_scale = std::make_shared<scale>(model_list, 2.0);
+    std::shared_ptr<hittable> model_translate = std::make_shared<translate>(model_scale, vec3(3,0,0));
+
+    std::cerr << "Model List Size: " << model_list->objects.size() << std::endl;
+    std::cerr << "Max world size: " << world.objects.max_size() << std::endl;
+
+    world.add(model_translate);
 
     cam.aspect_ratio      = 16.0 / 9.0;
-    cam.image_width       = 400;
-    cam.samples_per_pixel = 32;
+    cam.image_width       = 800;
+    cam.samples_per_pixel = 16;
     cam.max_depth         = 50;
 
-    cam.vfov     = 90;
-    cam.lookfrom = point3(0,0.0,1.5);
-    cam.lookat   = point3(0,0,1);
+    cam.vfov     = 40;
+    cam.lookfrom = point3(0, 0, -10);
+    cam.lookat   = point3(0, 0, 0);
     cam.vup      = vec3(0,1,0);
 
     cam.defocus_angle = 0.0;
@@ -432,10 +444,10 @@ void load_cornell_box(hittable_list& world, hittable_list& lights, camera& cam) 
     world.add(std::make_shared<quad>(point3(0,0,555), vec3(555,0,0), vec3(0,555,0), white));
 
     //std::shared_ptr<material> aluminium = std::make_shared<metal>(colour(0.8, 0.85, 0.88), 0.0);
-    std::shared_ptr<hittable> box1 = box(point3(0,0,0), point3(165,330,165), white);
-    box1 = std::make_shared<rotate_y>(box1, 15);
-    box1 = std::make_shared<translate>(box1, vec3(265,0,295));
-    world.add(box1);
+    //std::shared_ptr<hittable> box1 = box(point3(0,0,0), point3(165,330,165), aluminium);
+    //box1 = std::make_shared<rotate_y>(box1, 15);
+    //box1 = std::make_shared<translate>(box1, vec3(265,0,295));
+    //world.add(box1);
 
     //std::shared_ptr<hittable> box2 = box(point3(0,0,0), point3(165,165,165), white);
     //box2 = std::make_shared<rotate_y>(box2, -18);
@@ -444,8 +456,26 @@ void load_cornell_box(hittable_list& world, hittable_list& lights, camera& cam) 
 
     // Glass Sphere
 
-    auto glass = std::make_shared<dielectric>(1.5);
-    world.add(std::make_shared<sphere>(point3(190, 90, 190), 90, glass));
+    //auto glass = std::make_shared<dielectric>(1.5);
+    //world.add(std::make_shared<sphere>(point3(190, 90, 190), 90, glass));
+
+    //Model model { "test_objects/oguri/scene.gltf" };
+
+    //std::shared_ptr<hittable_list> model_list = std::make_shared<hittable_list>(); 
+    //mesh_to_hittables(model, *model_list, nullptr, vec3(0, 0, 0));
+    //std::shared_ptr<hittable> model_hittable = std::make_shared<translate>(model_list, vec3(165, 165, 295));
+    //std::shared_ptr<bvh_node> model_bvh = std::make_shared<bvh_node>(model_hittable);
+
+    //world.add(model_bvh);
+
+    Model dragon { "test_objects/dragon_recon/dragon_vrip.ply" };
+
+    std::shared_ptr<hittable_list> dragon_list = std::make_shared<hittable_list>();
+    mesh_to_hittables(dragon, *dragon_list, nullptr, vec3(0,0,0)); 
+    std::shared_ptr<hittable> dragon_hittable = std::make_shared<scale>(dragon_list, 200.0);
+    dragon_hittable = std::make_shared<translate>(dragon_hittable, vec3(278, 50, 200));
+    
+    world.add(dragon_hittable);
 
     // Light Sources
     auto empty_material = std::shared_ptr<material>();
@@ -454,7 +484,7 @@ void load_cornell_box(hittable_list& world, hittable_list& lights, camera& cam) 
 
     cam.aspect_ratio      = 1.0;
     cam.image_width       = 600;
-    cam.samples_per_pixel = 10;
+    cam.samples_per_pixel = 100;
     cam.max_depth         = 50;
     cam.background        = std::make_shared<solid_colour>(colour(0,0,0));
 

@@ -26,13 +26,14 @@ class render
             cam.initialize();
             int total_samples = cam.total_stratified_samples;
             // Define samples per-thread in the camera object
+            std::cerr << "Total samples: " << total_samples << std::endl; 
             cam.samples_per_pixel = total_samples / num_threads;
-            int remaining_samples = total_samples - (cam.samples_per_pixel * (num_threads - 1));
 
-            std::ostringstream sstream;
-            
             // Calculate number of threads to use
             if (cam.samples_per_pixel <= 0) num_threads = 0;
+            int remaining_samples = total_samples - (cam.samples_per_pixel * (num_threads - 1));
+            std::ostringstream sstream;
+            
             sstream << "Num threads: " << num_threads << std::endl;
             addstr(sstream.str().c_str());
             sstream.str("");
@@ -57,9 +58,9 @@ class render
             
             // Render the rest of the samples
             cam.samples_per_pixel = remaining_samples;
-            threads[num_threads - 1] = std::thread(&render::render_thread, this, std::ref(cam), 
-                std::ref(hittables), std::ref(lights), std::ref(image_data), std::ref(tscanlines[num_threads - 1]));
-            sstream << "Created final render thread " << threads[num_threads - 1].get_id() << " for " << cam.samples_per_pixel << " samples." << std::endl;
+            threads[threads_vector_size - 1] = std::thread(&render::render_thread, this, std::ref(cam), 
+                std::ref(hittables), std::ref(lights), std::ref(image_data), std::ref(tscanlines[threads_vector_size - 1]));
+            sstream << "Created final render thread " << threads[threads_vector_size - 1].get_id() << " for " << cam.samples_per_pixel << " samples." << std::endl;
             addstr(sstream.str().c_str());
             sstream.str("");
 

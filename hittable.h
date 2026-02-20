@@ -43,6 +43,11 @@ class hittable {
             return vec3(1,0,0);
         }
 
+        virtual int size() const
+        {
+            return 1;
+        }
+
         virtual aabb bounding_box() const = 0;
 };
 
@@ -158,6 +163,35 @@ class rotate_y : public hittable {
         std::shared_ptr<hittable> object;
         double cos_theta;
         double sin_theta;
+        aabb bbox;
+};
+
+class scale : public hittable {
+    public:
+        scale(std::shared_ptr<hittable> object, double f) : object(object), f(f) {
+           bbox = object->bounding_box() * f; 
+        }
+
+        bool hit(const ray&r, interval ray_t, hit_record& rec) const override {
+            // Scale ray coordinates down uniformly 
+            ray scaled_r(r.origin() / f, r.direction() / f, r.time());
+
+            // Determine whether an intersection exists along the down-scaled ray 
+            if (!object->hit(scaled_r, ray_t, rec))
+                return false;
+            
+            // Scale the intersection point and ray t value back up 
+            rec.p *= f;
+            //rec.t *= f;
+
+            return true;
+        }
+
+        aabb bounding_box() const override { return bbox; }
+
+    private:
+        std::shared_ptr<hittable> object;
+        double f;
         aabb bbox;
 };
 

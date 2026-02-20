@@ -95,6 +95,14 @@ aabb operator+(const vec3& offset, const aabb& bbox) {
    return bbox + offset;
 }
 
+aabb operator*(const aabb& bbox, double scale) {
+   return aabb(bbox.x * scale, bbox.y * scale, bbox.z * scale);
+}
+
+aabb operator*(double scale, const aabb& bbox) {
+   return bbox * scale;
+}
+
 std::ostream& operator<< (std::ostream& out, const aabb& bbox) 
 {
     out << "x" << bbox.x << std::endl;

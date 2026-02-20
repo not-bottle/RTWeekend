@@ -11,7 +11,7 @@ class hittable_list : public hittable {
     public:
         std::vector<std::shared_ptr<hittable>> objects;
 
-        hittable_list() {}
+        hittable_list() {}; 
         hittable_list(std::shared_ptr<hittable> object) { add(object); }
 
         void clear() { objects.clear(); }
@@ -39,6 +39,10 @@ class hittable_list : public hittable {
 
         aabb bounding_box() const override { return bbox; }
 
+        int size() const override {
+            return objects.size();
+        }
+
         double pdf_value(const point3& origin, const vec3& direction) const override {
             auto weight = 1.0 / objects.size();
             auto sum = 0.0;
@@ -51,6 +55,10 @@ class hittable_list : public hittable {
 
         vec3 random(const point3& origin) const override {
             auto int_size = int(objects.size());
+            if (int_size == 0) {
+                std::cerr << "This hittable list is empty!?" << std::endl;
+                return vec3(0.0, 1.0, 0.0);
+            }
             return objects[random_int(0, int_size-1)]->random(origin);
         }
 

@@ -70,4 +70,12 @@ interval operator+(double displacement, const interval& ival) {
     return ival + displacement;
 }
 
+interval operator*(const interval& ival, double scale) {
+    return interval(ival.min * scale, ival.max * scale);
+}
+
+interval operator*(double scale, const interval& ival) {
+    return ival * scale; 
+}
+
 #endif

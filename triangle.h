@@ -109,7 +109,7 @@ bool triangle::hit_geometric(const ray& r, interval ray_bounds, hit_record& rec)
     rec.set_face_normal(r, unit_vector(normal));
     rec.mat = mat;
     rec.u = u; rec.v = v;
-    
+
     return true;
 }
 
@@ -188,7 +188,9 @@ void mesh_to_hittables(Model &model, hittable_list &hittables, std::shared_ptr<m
         // Loading texture
         std::shared_ptr<material> tex = mat;
         if (mat == nullptr) {
-            if (mesh.textures[0].type.compare("texture_diffuse") == 0) {
+            if (mesh.textures.empty()) {
+                tex = std::make_shared<lambertian>(colour(1,1,1));
+            } else if (mesh.textures[0].type.compare("texture_diffuse") == 0) {
                 tex = std::make_shared<lambertian>(std::make_shared<image_texture>(mesh.textures[0].texture));
             }
         }

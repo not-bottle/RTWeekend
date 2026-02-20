@@ -64,6 +64,7 @@ class camera {
         image_height = (image_height < 1) ? 1 : image_height; // Ensure height is at least 1
 
         sqrt_spp = int(std::sqrt(samples_per_pixel));
+        sqrt_spp = sqrt_spp <= 0 ? 1 : sqrt_spp;
         total_stratified_samples = sqrt_spp * sqrt_spp;
         recip_sqrt_spp = 1.0 / sqrt_spp;
 
@@ -147,7 +148,11 @@ class camera {
                 return srec.attenuation * ray_colour(srec.skip_pdf_ray, depth-1, world, lights);
             }
 
-            auto light_ptr = std::make_shared<hittable_pdf>(lights, rec.p);
+            std::shared_ptr<pdf> light_ptr = std::make_shared<hittable_pdf>(lights, rec.p);
+            // Quick (bad) fix for scenes with no light objects
+            if (lights.size() <= 0) {
+               light_ptr = srec.pdf_ptr; 
+            }
             mixture_pdf p(light_ptr, srec.pdf_ptr);
 
             ray scattered = ray(rec.p, p.generate(), r.time());

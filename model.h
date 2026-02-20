@@ -44,7 +44,7 @@ private:
         // read file via ASSIMP
         Assimp::Importer importer;
         importer.SetPropertyInteger(AI_CONFIG_PP_RVC_FLAGS, aiComponent_NORMALS);
-        const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_FlipUVs | aiProcess_RemoveComponent | aiProcess_GenSmoothNormals);
+        const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);
         // check for errors
         if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
         {
