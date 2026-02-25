@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
             load_cornell_box(world, lights, cam);
             break;
         case 1:
-            load_suzanne_normal(world, cam);
+            load_suzanne_normal(world, lights, cam);
             break;
         default:
             std::cout << usage << std::endl;

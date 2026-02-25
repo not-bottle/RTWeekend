@@ -180,6 +180,7 @@ bool triangle::hit_moller_trumbore(const ray& r, interval ray_bounds, hit_record
 
 void mesh_to_hittables(Model &model, hittable_list &hittables, std::shared_ptr<material> mat, vec3 direction) {
     std::cerr << "Num meshes:" << model.meshes.size() << std::endl;
+    hittable_list temp_list;
     for (int m = 0; m < model.meshes.size(); m++) {
         Mesh mesh = model.meshes[m];
 
@@ -213,11 +214,12 @@ void mesh_to_hittables(Model &model, hittable_list &hittables, std::shared_ptr<m
             Vertex vertex1 = Vertex{v1, n1, t1};
             Vertex vertex2 = Vertex{v2, n2, t2};
             std::shared_ptr<triangle> tri = std::make_shared<triangle>(vertex0, vertex1, vertex2, tex, direction);
-            hittables.add(tri);
+            temp_list.add(tri);
             acc += 1;
         }
         std::cerr << "Num triangles in mesh " << m << ": " << acc << std::endl;
     }
+    hittables.add(std::make_shared<bvh_node>(temp_list));
 }
 
 #endif // TRIANGLE_H

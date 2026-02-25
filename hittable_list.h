@@ -55,10 +55,9 @@ class hittable_list : public hittable {
 
         vec3 random(const point3& origin) const override {
             auto int_size = int(objects.size());
-            if (int_size == 0) {
-                std::cerr << "This hittable list is empty!?" << std::endl;
-                return vec3(0.0, 1.0, 0.0);
-            }
+            //if (int_size == 0) {
+            //    return vec3(0.0, 1.0, 0.0);
+            //}
             return objects[random_int(0, int_size-1)]->random(origin);
         }
 
